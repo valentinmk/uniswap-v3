@@ -1,17 +1,19 @@
-# uniswap-v3
+# uniswap-v3 
+
+**WORK IN PROGRESS**
+
 An unofficial python client for Uniswap V3, built for human beings.
 
 ## TODO
 
 1. version 0.0.1 - swaps
 > You are here
-- [ ] Base classes
-- [ ] Original scenarios from an official documentations
-    - [ ] "Creating a Pool instance"
-    - [ ] "Fetching Spot Prices"
-    - [ ] "Creating a Trade"
-    - [ ] "Integrating the Auto Router"
-    - [ ]
+- [x] Base classes
+- [x] Original scenarios from an official documentations
+    - [x] "Creating a Pool instance"
+    - [x] "Fetching Spot Prices"
+    - [x] "Creating a Trade"
+    - [x] (Extra) Execute a Trade
 2. version 0.0.2 - Position NFTs
 - [ ] Mint
 - [ ] Increase liquidity
@@ -26,5 +28,7 @@ An unofficial python client for Uniswap V3, built for human beings.
 
 4. version 0.0.4 - PYPI publishing and docs
 5. version 0.0.5 - finish with tests
+6. version 0.0.6 - smart-routing / analog to AlphaRouter
+- [ ] "Integrating the Auto Router"
 
 > END
