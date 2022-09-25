@@ -7,8 +7,8 @@ from uniswap.v3.main import UniswapV3
 
 def test_draft():
     # TODO
-    # Work in progress
-    # provide complete and working tests
+    # Work in progress. It's a mess for now.
+    # provide complete integration and unit tests.
     client = web3_client.EtherClient(http_url=os.environ.get("ETH_PROVIDER_URL"))
     print(client.w3.eth.block_number)
 

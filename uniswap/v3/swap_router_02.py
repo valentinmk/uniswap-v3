@@ -51,7 +51,6 @@ class SwapRouter02(BaseContract):
             unchecked_trade.raw.route,
             to,
         )
-        print(function_call)
         transaction = function_call.buildTransaction(
             {
                 "chainId": self.w3.eth.chain_id,

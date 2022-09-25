@@ -1,7 +1,6 @@
-from web3 import Web3
-
+from eth_typing import ChecksumAddress
 from uniswap.EtherClient.web3_client import EtherClient
-
+from web3 import Web3
 
 from ..utils.consts import CONTRACT_ADDRESSES
 from .factory import Factory
@@ -9,7 +8,7 @@ from .pool import Pool
 from .quoter import Quoter
 from .swap_router import SwapRouter
 from .swap_router_02 import SwapRouter02
-from eth_typing import ChecksumAddress
+from .nft_position_manager import NonfungiblePositionManager
 
 
 class UniswapV3:
@@ -20,6 +19,7 @@ class UniswapV3:
         self._quoter: Quoter = None
         self._swap_router: SwapRouter = None
         self._swap_router_02: SwapRouter02 = None
+        self._nft_position_manager: NonfungiblePositionManager = None
 
     @property
     def factory(self):
@@ -54,6 +54,18 @@ class UniswapV3:
                 CONTRACT_ADDRESSES[self.w3.eth.chain_id]["swap_router_02"],
             )
         return self._swap_router_02
+
+    @property
+    def nft_position_manager(self):
+        if self._nft_position_manager is None:
+            self._nft_position_manager = NonfungiblePositionManager(
+                self.client,
+                self.w3,
+                CONTRACT_ADDRESSES[self.w3.eth.chain_id][
+                    "non_fungible_position_manager"
+                ],
+            )
+        return self._nft_position_manager
 
     @staticmethod
     def is_fee_valid(fee: int) -> bool:

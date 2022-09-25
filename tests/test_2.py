@@ -9,8 +9,8 @@ from uniswap.utils.erc20token_consts import ROPSTEN_USDC, ROPSTEN_WETH
 
 def test_draft():
     # TODO
-    # Work in progress
-    # provide complete and working tests
+    # Work in progress. It's a mess for now.
+    # provide complete integration and unit tests.
     client = web3_client.EtherClient(http_url=os.environ.get("ETH_PROVIDER_URL"))
     # client.w3
     print(client.w3.eth.block_number)

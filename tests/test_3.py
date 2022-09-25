@@ -16,8 +16,8 @@ from uniswap.utils.erc20token_consts import (
 
 def test_draft():
     # TODO
-    # Work in progress
-    # provide complete and working tests
+    # Work in progress. It's a mess for now.
+    # provide complete integration and unit tests.
     MY_ADDRESS = Web3.toChecksumAddress("0x997d4c6A7cA5d524babDf1b205351f6FB623b5E7")
 
     ETH_HTTP_URL = os.environ.get("ETH_PROVIDER_URL")

@@ -9,8 +9,6 @@ from web3.types import TxReceipt
 from ..v3.base import BaseContract
 from ..v3.models import Token
 
-# from ..v3.math import MAX_UINT_256
-
 
 @lru_cache
 class EIP20Contract(BaseContract):

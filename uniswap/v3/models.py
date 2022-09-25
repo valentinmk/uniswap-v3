@@ -70,3 +70,46 @@ class UncheckedTrade:
     inputAmount: float
     outputAmount: float
     tradeType: EXACT_INPUT | EXACT_OUTPUT
+
+
+@dataclass
+class NftPositionUriData:
+    name: str
+    description: str
+    image: str
+
+
+@dataclass
+class NftPositionRaw:
+    token_id: int
+    nonce: int
+    operator: ChecksumAddress
+    token0: ChecksumAddress
+    token1: ChecksumAddress
+    fee: int
+    tickLower: int
+    tickUpper: int
+    liquidity: int
+    feeGrowthInside0LastX128: int
+    feeGrowthInside1LastX128: int
+    tokensOwed0: int
+    tokensOwed1: int
+    token_URI_data: None
+
+
+@dataclass
+class NftPosition:
+    token_id: int
+    raw: NftPositionRaw
+    pool: PoolData
+    amount0: int = 0
+    amount1: int = 0
+    amount0HR: float = 0.0
+    amount1HR: float = 0.0
+    unclaimedfeesamount0: int = 0
+    unclaimedfeesamount1: int = 0
+    unclaimedfeesamount0HR: float = 0.0
+    unclaimedfeesamount1HR: float = 0.0
+    token0: Token = None
+    token1: Token = None
+    fee: float = 0.0
