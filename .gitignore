@@ -129,4 +129,5 @@ dmypy.json
 .pyre/
 
 # My stuff
+_.env
 draft.py

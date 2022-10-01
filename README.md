@@ -15,24 +15,30 @@ An unofficial python client for Uniswap V3, built for human beings.
     - [x] "Creating a Trade"
     - [x] (Extra) Execute a Trade
 2. version 0.0.2 - Position NFTs
+- [x] Mint
+- [x] Increase liquidity
+- [x] Decrease liquidity
+- [x] Collect
+- [x] Position info
+- [ ] "Swap and Add Liquidity Atomically" (?)
+
+3. version 0.0.3 - multicall support
+- [ ] multicall interface
+- [ ] TBD
+
+4. version 0.0.4 - Position NFT for humans
 - [ ] Mint
 - [ ] Increase liquidity
 - [ ] Decrease liquidity
 - [ ] Collect
 - [ ] Position info
-- [ ] "Swap and Add Liquidity Atomically" (?)
 
-3. version 0.0.4 - library design - client to BaseContract
+5. version 0.0.5 - library design - client to BaseContract
 
-4. version 0.0.4 - PYPI publishing and docs
+6. version 0.0.6 - PYPI publishing and docs
 
-
-5. version 0.0.3 - multicall support
-- [ ] multicall interface
-- [ ] TBD
-
-6. version 0.0.5 - finish with tests
-7. version 0.0.6 - smart-routing / analog to AlphaRouter
+7. version 0.0.7 - finish with tests
+8. version 0.0.8 - smart-routing / analog to AlphaRouter
 - [ ] "Integrating the Auto Router"
 
 > END
