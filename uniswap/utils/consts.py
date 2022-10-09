@@ -2,6 +2,7 @@ from web3 import Web3
 
 MAINNET = 1
 ROPSTEN = 3
+GOERLI = 5
 
 EXACT_INPUT = 0
 EXACT_OUTPUT = 1
@@ -17,6 +18,13 @@ ERC20_TOKENS = {
         "UNI": Web3.toChecksumAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"),
         "AAVE": Web3.toChecksumAddress("0xa17669420eD99FAc51308567B08B7BaC86837BAf"),
         "COMP": Web3.toChecksumAddress("0xf76D4a441E4ba86A923ce32B89AFF89dBccAA075"),
+    },
+    GOERLI: {
+        "USDC": Web3.toChecksumAddress("0xD87Ba7A50B2E7E660f678A895E4B72E7CB4CCd9C"),
+        "WETH": Web3.toChecksumAddress("0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"),
+        "UNI": Web3.toChecksumAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"),
+        "AAVE": Web3.toChecksumAddress("0x63242B9Bd3C22f18706d5c4E627B4735973f1f07"),
+        "COMP": Web3.toChecksumAddress("0x3587b2F7E0E2D6166d6C14230e7Fe160252B0ba4"),
     },
 }
 
@@ -38,6 +46,9 @@ CONTRACT_ADDRESSES = {
         "non_fungible_position_manager": Web3.toChecksumAddress(
             "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
         ),
+        "multicall2": Web3.toChecksumAddress(
+            "0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696"
+        ),
     },
     ROPSTEN: {
         "factory": Web3.toChecksumAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984"),
@@ -53,6 +64,28 @@ CONTRACT_ADDRESSES = {
         ),
         "non_fungible_position_manager": Web3.toChecksumAddress(
             "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
+        ),
+        "multicall2": Web3.toChecksumAddress(
+            "0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696"
+        ),
+    },
+    GOERLI: {
+        "factory": Web3.toChecksumAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984"),
+        "nonfungible_position_manager": Web3.toChecksumAddress(
+            "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
+        ),
+        "quoter": Web3.toChecksumAddress("0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"),
+        "swap_router": Web3.toChecksumAddress(
+            "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+        ),
+        "swap_router_02": Web3.toChecksumAddress(
+            "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
+        ),
+        "non_fungible_position_manager": Web3.toChecksumAddress(
+            "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
+        ),
+        "multicall2": Web3.toChecksumAddress(
+            "0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696"
         ),
     },
 }

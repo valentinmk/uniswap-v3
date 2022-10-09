@@ -23,8 +23,7 @@ An unofficial python client for Uniswap V3, built for human beings.
 - [ ] "Swap and Add Liquidity Atomically" (?)
 
 3. version 0.0.3 - multicall support
-- [ ] multicall interface
-- [ ] TBD
+- [x] multicall interface
 
 4. version 0.0.4 - Position NFT for humans
 - [ ] Mint
@@ -34,6 +33,9 @@ An unofficial python client for Uniswap V3, built for human beings.
 - [ ] Position info
 
 5. version 0.0.5 - library design - client to BaseContract
+- [ ] send_transaction to BaseContract
+- [ ] muticall2 to lower RPS to provider
+- [ ] multiple providers
 
 6. version 0.0.6 - PYPI publishing and docs
 

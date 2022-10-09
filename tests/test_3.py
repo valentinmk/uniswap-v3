@@ -1,17 +1,14 @@
 import os
-from web3 import Web3
-from uniswap.EtherClient import web3_client
-from uniswap.v3.main import UniswapV3
 
-from uniswap.utils.erc20token import EIP20Contract
+from uniswap.EtherClient import web3_client
 from uniswap.utils.consts import ERC20_TOKENS
-from uniswap.utils.erc20token_consts import (
+from uniswap.utils.erc20token import EIP20Contract
+from uniswap.utils.erc20token_consts import (  # ROPSTEN_AAVE_TOKEN,; ROPSTEN_COMP_TOKEN,; ROPSTEN_UNI_TOKEN,
     ROPSTEN_USDC,
     ROPSTEN_WETH,
-    # ROPSTEN_AAVE_TOKEN,
-    # ROPSTEN_COMP_TOKEN,
-    # ROPSTEN_UNI_TOKEN,
 )
+from uniswap.v3.main import UniswapV3
+from web3 import Web3
 
 
 def test_draft():

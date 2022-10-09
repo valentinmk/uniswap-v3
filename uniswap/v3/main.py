@@ -9,6 +9,7 @@ from .quoter import Quoter
 from .swap_router import SwapRouter
 from .swap_router_02 import SwapRouter02
 from .nft_position_manager import NonfungiblePositionManager
+from .multicall2 import Multicall2
 
 
 class UniswapV3:
@@ -20,6 +21,7 @@ class UniswapV3:
         self._swap_router: SwapRouter = None
         self._swap_router_02: SwapRouter02 = None
         self._nft_position_manager: NonfungiblePositionManager = None
+        self._multicall2: Multicall2 = None
 
     @property
     def factory(self):
@@ -67,6 +69,16 @@ class UniswapV3:
             )
         return self._nft_position_manager
 
+    @property
+    def multicall2(self):
+        if self._multicall2 is None:
+            self._multicall2 = Multicall2(
+                self.client,
+                self.w3,
+                CONTRACT_ADDRESSES[self.w3.eth.chain_id]["multicall2"],
+            )
+        return self._multicall2
+
     @staticmethod
     def is_fee_valid(fee: int) -> bool:
         return fee in [100, 500, 3000, 10000]
@@ -78,4 +90,4 @@ class UniswapV3:
             pool_address = self.factory.functions.getPool(token0, token1, fee).call()
             return Pool(client=self.client, w3=self.w3, address=pool_address)
         else:
-            raise BaseException("Invalid fee. Should be in [500, 3000, 10000]")
+            raise BaseException("Invalid fee. Should be in [100, 500, 3000, 10000]")
