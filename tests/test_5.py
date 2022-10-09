@@ -8,10 +8,7 @@ from uniswap.v3.main import UniswapV3
 from uniswap.utils.erc20token import EIP20Contract
 from uniswap.utils.consts import ERC20_TOKENS
 
-# from uniswap.utils.erc20token_consts import (
-#     ROPSTEN_USDC,
-#     ROPSTEN_WETH,
-# )
+
 def test_draft():
     # TODO
     # Work in progress. It's a mess for now.
@@ -73,7 +70,7 @@ def test_draft():
     print(usdc_outputs)
     print("*" * 100)
     path = "multicall2.abi.json"
-    abi_file = open(f"{os.path.dirname(__file__)}/uniswap/utils/abis/{path}")
+    abi_file = open(f"{os.path.dirname(__file__)}/../uniswap/utils/abis/{path}")
     # print(abi_file)
     abi = json.load(abi_file)
     multicall2 = eth_client.w3.eth.contract(

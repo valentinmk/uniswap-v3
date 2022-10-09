@@ -1,7 +1,7 @@
 import os
 
 from uniswap.EtherClient import web3_client
-from uniswap.utils.consts import ERC20_TOKENS
+from uniswap.utils.consts import ERC20_TOKENS, GOERLI
 from uniswap.utils.erc20token import EIP20Contract
 from uniswap.v3.main import UniswapV3
 from web3 import Web3
@@ -31,8 +31,8 @@ def test_draft():
     print(eth_client.w3.eth.block_number)
     uni = UniswapV3(eth_client)
 
-    usdc = EIP20Contract(eth_client, eth_client.w3, ERC20_TOKENS[3]["USDC"])
-    weth = EIP20Contract(eth_client, eth_client.w3, ERC20_TOKENS[3]["WETH"])
+    usdc = EIP20Contract(eth_client, eth_client.w3, ERC20_TOKENS[GOERLI]["USDC"])
+    weth = EIP20Contract(eth_client, eth_client.w3, ERC20_TOKENS[GOERLI]["WETH"])
     print(usdc)
     print(usdc.data)
     # print(uni.swap_router_02.address)

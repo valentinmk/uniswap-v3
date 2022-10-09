@@ -1,6 +1,6 @@
 import os
 from uniswap.EtherClient import web3_client
-from uniswap.utils.consts import ERC20_TOKENS, ROPSTEN
+from uniswap.utils.consts import ERC20_TOKENS, GOERLI
 from uniswap.utils.erc20token import EIP20Contract
 from uniswap.v3.main import UniswapV3
 
@@ -13,8 +13,8 @@ def test_draft():
     print(client.w3.eth.block_number)
 
     uni = UniswapV3(client)
-    usdc = EIP20Contract(client, client.w3, ERC20_TOKENS[ROPSTEN]["USDC"])
-    weth = EIP20Contract(client, client.w3, ERC20_TOKENS[ROPSTEN]["WETH"])
+    usdc = EIP20Contract(client, client.w3, ERC20_TOKENS[GOERLI]["USDC"])
+    weth = EIP20Contract(client, client.w3, ERC20_TOKENS[GOERLI]["WETH"])
     print(usdc.data)
     print(weth.data)
     # print(uni.factory.get_functions())

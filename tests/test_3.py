@@ -1,11 +1,11 @@
 import os
 
 from uniswap.EtherClient import web3_client
-from uniswap.utils.consts import ERC20_TOKENS
+from uniswap.utils.consts import ERC20_TOKENS, GOERLI
 from uniswap.utils.erc20token import EIP20Contract
-from uniswap.utils.erc20token_consts import (  # ROPSTEN_AAVE_TOKEN,; ROPSTEN_COMP_TOKEN,; ROPSTEN_UNI_TOKEN,
-    ROPSTEN_USDC,
-    ROPSTEN_WETH,
+from uniswap.utils.erc20token_consts import (
+    GOERLI_USDC_TOKEN,
+    GOERLI_WETH_TOKEN,
 )
 from uniswap.v3.main import UniswapV3
 from web3 import Web3
@@ -31,8 +31,7 @@ def test_draft():
     print(_w3.w3.eth.block_number)
     uni = UniswapV3(_w3)
 
-    # print(EIP20Contract(_w3.w3, ERC20_TOKENS[3]["USDC"]).data)
-    usdc = EIP20Contract(_w3, _w3.w3, ERC20_TOKENS[3]["USDC"])
+    usdc = EIP20Contract(_w3, _w3.w3, ERC20_TOKENS[GOERLI]["USDC"])
     print(usdc)
     print(usdc.data)
     print(uni.swap_router_02.address)
@@ -46,22 +45,26 @@ def test_draft():
     print(uni.quoter)
     print(uni.quoter.get_functions())
     fee = 500
-    amount_in = int(1.5 * 10**ROPSTEN_USDC.decimals)
+    amount_in = int(1.5 * 10**GOERLI_USDC_TOKEN.decimals)
     print(
         uni.quoter.functions.quoteExactInputSingle(
-            ROPSTEN_USDC.address, ROPSTEN_WETH.address, fee, amount_in, 0
+            GOERLI_USDC_TOKEN.address, GOERLI_WETH_TOKEN.address, fee, amount_in, 0
         ).call()
-        / 10**ROPSTEN_WETH.decimals
+        / 10**GOERLI_WETH_TOKEN.decimals
     )
     print(
         uni.quoter._get_quote(
-            ROPSTEN_USDC.address, ROPSTEN_WETH.address, 500, int(1.5 * 10**6), 0
+            GOERLI_USDC_TOKEN.address,
+            GOERLI_WETH_TOKEN.address,
+            500,
+            int(1.5 * 10**6),
+            0,
         )
     )
-    print(uni.quoter.get_trade(ROPSTEN_USDC, ROPSTEN_WETH, 0.05, 1.5))
+    print(uni.quoter.get_trade(GOERLI_USDC_TOKEN, GOERLI_WETH_TOKEN, 0.05, 1.5))
     print("*" * 100)
     print(uni.swap_router.get_functions())
-    pre_trade = uni.quoter.get_trade(ROPSTEN_USDC, ROPSTEN_WETH, 0.05, 1.5)
+    pre_trade = uni.quoter.get_trade(GOERLI_USDC_TOKEN, GOERLI_WETH_TOKEN, 0.05, 1.5)
     tokenIn = pre_trade.route[0].address
     tokenOut = pre_trade.route[1].address
     fee = fee
@@ -112,15 +115,15 @@ def test_draft():
     # print(uni.swap_router_02.swapExactTokensForTokens(pre_trade, MY_ADDRESS))
     print(
         uni.quoter.functions.quoteExactInputSingle(
-            ROPSTEN_USDC.address,  # tokenIn
-            ROPSTEN_WETH.address,  # tokenOut
+            GOERLI_USDC_TOKEN.address,  # tokenIn
+            GOERLI_WETH_TOKEN.address,  # tokenOut
             500,  # fee
             int(100 * 10**18),  # amountIn
             0,  # sqrtPriceLimitX96
         ).call()
     )
     pre_trade = uni.quoter.get_trade(
-        ROPSTEN_USDC, ROPSTEN_WETH, fee=0.05, amount_in=100
+        GOERLI_USDC_TOKEN, GOERLI_WETH_TOKEN, fee=0.05, amount_in=100
     )
     print(pre_trade)
     # print(
