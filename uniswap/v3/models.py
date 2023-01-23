@@ -113,3 +113,16 @@ class NftPosition:
     token0: Token = None
     token1: Token = None
     fee: float = 0.0
+
+
+@dataclass
+class UncheckedNftPosition:
+    token_id: int
+    pool: PoolData
+    amount0: int = 0
+    amount1: int = 0
+    amount0HR: float = 0.0
+    amount1HR: float = 0.0
+    token0: Token = None
+    token1: Token = None
+    fee: float = 0.0

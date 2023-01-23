@@ -131,3 +131,4 @@ dmypy.json
 # My stuff
 _.env
 draft.py
+.env
