@@ -30,7 +30,7 @@ An unofficial python client for Uniswap V3, built for human beings.
 
 - [x] multicall interface
 
-1. version 0.0.4 - Position NFT for humans
+4. version 0.0.4 - Position NFT for humans
 
 - [ ] Mint
 - [ ] Increase liquidity
