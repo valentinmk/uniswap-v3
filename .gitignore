@@ -132,3 +132,4 @@ dmypy.json
 _.env
 draft.py
 .env
+.vscode

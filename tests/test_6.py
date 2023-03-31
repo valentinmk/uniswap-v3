@@ -4,23 +4,20 @@ import os
 from web3 import Web3
 
 from uniswap.EtherClient import web3_client
-from uniswap.utils.consts import ERC20_TOKENS
-from uniswap.utils.erc20token import EIP20Contract
+
+# from uniswap.utils.consts import ERC20_TOKENS
+# from uniswap.utils.erc20token import EIP20Contract
 from uniswap.utils.erc20token_consts import GOERLI_UNI_TOKEN, GOERLI_WETH_TOKEN
 from uniswap.v3.main import UniswapV3
 from uniswap.v3.math import (
     from_sqrtPriceX96,
-    get_amount0_from_range,
-    get_amount0hr_from_range,
-    get_amount1_from_range,
-    get_amount1hr_from_range,
+    get_amount0_from_tick_range,
+    get_amount1_from_tick_range,
+    get_amount0_from_price_range,
+    get_amount1_from_price_range,
     get_sqrt_ratio_at_tick,
-    get_sqrt_ratio_at_tick_alt,
-    get_amount0,
-    get_amount1,
     get_liquidity,
-    get_liquidity0,
-    get_liquidity1,
+    get_tick_from_price,
 )
 
 
@@ -40,8 +37,8 @@ def test_draft():
     )
     uni = UniswapV3(eth_client)
 
-    unit = EIP20Contract(eth_client, eth_client.w3, ERC20_TOKENS[5]["UNI"])
-    weth = EIP20Contract(eth_client, eth_client.w3, ERC20_TOKENS[5]["WETH"])
+    # unit = EIP20Contract(eth_client, eth_client.w3, ERC20_TOKENS[5]["UNI"])
+    # weth = EIP20Contract(eth_client, eth_client.w3, ERC20_TOKENS[5]["WETH"])
 
     # _position_raw = uni.nft_position_manager._fetch_position_info(37319)
     # pool = uni.get_pool(_position_raw.token0, _position_raw.token1, _position_raw.fee)
@@ -50,6 +47,7 @@ def test_draft():
     # )
     # Get data for testing
     pool = uni.get_pool(GOERLI_WETH_TOKEN.address, GOERLI_UNI_TOKEN.address, 500)
+    pool.data
     hex_data = "0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001e00000000000000000000000000000000000000000000000000000000000000164883164560000000000000000000000001f9840a85d5af5bf1d1762f925bdaddc4201f984000000000000000000000000b4fbf271143f4fbf7b91a5ded31805e42b2208d600000000000000000000000000000000000000000000000000000000000001f4ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe4ee000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001909cad14836649000000000000000000000000000000000000000000000000016345785d8a00000000000000000000000000000000000000000000000000000189acd745a3ea9e000000000000000000000000000000000000000000000000015e293ecd735612000000000000000000000000997d4c6a7ca5d524babdf1b205351f6fb623b5e700000000000000000000000000000000000000000000000000000000639c79ec00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000412210e8a00000000000000000000000000000000000000000000000000000000"  # noqa
     call_data = uni.nft_position_manager.decode_multicall(hex_data)
     print(call_data)
@@ -82,23 +80,13 @@ def test_draft():
         current_price_x96,
         get_sqrt_ratio_at_tick(current_tick),
     )
-    print(
-        "current_price_x96 vs. get_sqrt_ratio_at_tick_alt(current_tick):            ",
-        current_price_x96,
-        get_sqrt_ratio_at_tick_alt(current_tick),
-    )
+
     print("https://uniswapv3book.com/docs/milestone_1/calculating-liquidity/")
     print(
         "From ex price_to_sqrtp(5000) = 5602277097478614198912276234240",
         " vs from_sqrtPriceX96:    ",
         5000,
         from_sqrtPriceX96(5602277097478614198912276234240),
-    )
-    print(
-        "From ex price_to_tick(5000) = 85176 vs "
-        "from_sqrtPriceX96(get_sqrt_ratio_at_tick(85176))):    ",
-        5000,
-        from_sqrtPriceX96(get_sqrt_ratio_at_tick_alt(85176)),
     )
     # XXX
     # Fuck it/me -  Current tick != current_price_x96 in common case !!!!
@@ -112,7 +100,7 @@ def test_draft():
     print("Test 0.")
     print(f"Price: {from_sqrtPriceX96(current_price_x96) * 10 ** (18 - 18)}")
     print(
-        get_amount0hr_from_range(
+        get_amount0_from_price_range(
             p=current_price,
             pa=lower_price,
             pb=upper_price,
@@ -125,7 +113,7 @@ def test_draft():
         / 10 ** (18 - 18)
     )
     print(
-        get_amount1hr_from_range(
+        get_amount1_from_price_range(
             p=current_price,
             pa=lower_price,
             pb=upper_price,
@@ -147,7 +135,7 @@ def test_draft():
     print(f"sqrt_ratio_BX96:                {get_sqrt_ratio_at_tick(upper_tick)}")
     print(
         "get_amount0_from_range:        ",
-        get_amount0_from_range(
+        get_amount0_from_tick_range(
             p=current_price_x96,
             pa=get_sqrt_ratio_at_tick(lower_tick),
             pb=get_sqrt_ratio_at_tick(upper_tick),
@@ -157,7 +145,7 @@ def test_draft():
 
     print(
         "get_amount1_from_range:        ",
-        get_amount1_from_range(
+        get_amount1_from_tick_range(
             p=current_price_x96,
             pa=get_sqrt_ratio_at_tick(lower_tick),
             pb=get_sqrt_ratio_at_tick(upper_tick),
@@ -165,75 +153,91 @@ def test_draft():
         ),
     )
 
-    # Test case from PDF. Test 2.
-    # amount0 = 2
-    # amount1 = 4000
-    # current_price = 2000
-    # pa = 1500
-    # pb = 2500
+    # Test case 2.
     print("Test 2.")
 
     liq = get_liquidity(
-        tick_current=current_tick,
         sqrt_price_x_96=current_price_x96,
-        tick_lower=lower_tick,
-        tick_upper=upper_tick,
+        sqrt_price_x_96_tick_lower=get_sqrt_ratio_at_tick(lower_tick),
+        sqrt_price_x_96_tick_upper=get_sqrt_ratio_at_tick(upper_tick),
         amount0=amount0,
         amount1=amount1,
     )
-    print(
-        "get_liquidity:                 ",
-        liq,
-    )
-    print(
-        "get_amount0 from liquiduty:    ",
-        get_amount0(
-            tick_current=current_tick,
-            sqrt_price_x_96=current_price_x96,
-            tick_lower=lower_tick,
-            tick_upper=upper_tick,
-            liquidity=liq,
-        ),
-    )
-    print(
-        "get_amount1 from liquiduty:    ",
-        get_amount1(
-            tick_current=current_tick,
-            sqrt_price_x_96=current_price_x96,
-            tick_lower=lower_tick,
-            tick_upper=upper_tick,
-            liquidity=liq,
-        ),
-    )
-    print(
-        "get_amount0 from liquiduty1:   ",
-        get_amount0(
-            tick_current=current_tick,
-            sqrt_price_x_96=current_price_x96,
-            tick_lower=lower_tick,
-            tick_upper=upper_tick,
-            liquidity=get_liquidity1(
-                amount=amount1,
-                pa=current_price_x96,
-                pb=get_sqrt_ratio_at_tick(lower_tick),
-            ),
-        ),
-    )
-    print(
-        "get_amount1 from liquiduty0:   ",
-        get_amount1(
-            tick_current=current_tick,
-            sqrt_price_x_96=current_price_x96,
-            tick_lower=lower_tick,
-            tick_upper=upper_tick,
-            liquidity=get_liquidity0(
-                amount=amount0,
-                pa=current_price_x96,
-                pb=get_sqrt_ratio_at_tick(upper_tick),
-            ),
-        ),
-    )
+    print("get_liquidity:                 ", liq)
 
-    # hex = "0x5ae401dc00000000000000000000000000000000000000000000000000000000637213cc000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000016000000000000000000000000000000000000000000000000000000000000000e404e45aaf0000000000000000000000008d9eac6f25470effd68f0ad22993cb2813c0c9b9000000000000000000000000b4fbf271143f4fbf7b91a5ded31805e42b2208d600000000000000000000000000000000000000000000000000000000000027100000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000ed2b525841adfc0000000000000000000000000000000000000000000000000000001f887563d56edbf000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004449404b7c00000000000000000000000000000000000000000000000001f887563d56edbf0000000000000000000000007c7429fa0083ab49a18fda9c83f38a6b129470f200000000000000000000000000000000000000000000000000000000"  # noqa
-    # [print(i) for i in uni.swap_router_02.decode_multicall(hex)]
     print(call_data)
+
+    # Test 3. nft_position_manager create_position / create UncheckedPosition
+    current_price = 0.7330118001653848
+    lower_price = 0.50009
+    upper_price = 1
+    amount0HR = 0.112762
+    amount1HR = 0.1
+    current_price_x96 = 67832069427941323875712969912
+    current_tick = -3107
+    lower_tick = -6930
+    upper_tick = 0
+    amount0 = 112762257871693385
+    amount1 = 100000000000000000
+    unchecked_pos = uni.nft_position_manager.create_position(
+        pool=pool.data,
+        current_price=0.7330118001653848,
+        lower_price=0.50009,
+        upper_price=1,
+        amount1=0.1,
+    )
+    assert round(unchecked_pos.amount0HR, 6) == amount0HR
+
+    unchecked_pos = uni.nft_position_manager.create_position(
+        pool=pool.data,
+        current_price=0.7330118001653848,
+        lower_price=0.50009,
+        upper_price=1,
+        amount0=0.112762,
+    )
+    assert round(unchecked_pos.amount1HR, 6) == amount1HR
+    try:
+        unchecked_pos = uni.nft_position_manager.create_position(
+            pool=pool.data,
+            current_price=0.7330118001653848,
+            lower_price=0.50009,
+            upper_price=1,
+        )
+    except ValueError:
+        pass
+    except Exception:
+        raise AssertionError
+    # Test 4. nft_position_manager create_position / create UncheckedPositionRaw
+    unchecked_pos_raw = uni.nft_position_manager._create_position(
+        pool=pool.data,
+        current_tick=current_tick,
+        current_price_x96=current_price_x96,
+        lower_tick=lower_tick,
+        upper_tick=upper_tick,
+        amount0=amount0,
+    )
+    assert unchecked_pos_raw.amount1 == amount1
+    unchecked_pos_raw = uni.nft_position_manager._create_position(
+        pool=pool.data,
+        current_tick=current_tick,
+        current_price_x96=current_price_x96,
+        lower_tick=lower_tick,
+        upper_tick=upper_tick,
+        amount1=amount1,
+    )
+    assert unchecked_pos_raw.amount0 == amount0
+    try:
+        unchecked_pos_raw = uni.nft_position_manager._create_position(
+            pool=pool.data,
+            current_tick=current_tick,
+            current_price_x96=current_price_x96,
+            lower_tick=lower_tick,
+            upper_tick=upper_tick,
+        )
+    except ValueError:
+        pass
+    except Exception:
+        raise AssertionError
+    # TEST 5.
+    get_tick_from_price(0.7330118001653848, 18, 18)
+    pass
