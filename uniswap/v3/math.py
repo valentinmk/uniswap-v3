@@ -1,13 +1,10 @@
-from math import sqrt, floor
-
-# import math
+from math import sqrt
 
 Q32 = 2**32
 Q96 = 2**96
 Q128 = 2**128
 MAX_UINT_128 = 2**128 - 1
 MAX_UINT_256 = 2**256 - 1
-# 115792089237316195423570985008687907853269984665640564039457584007913129639935
 MIN_TICK = -887272
 MAX_TICK = -MIN_TICK
 
@@ -16,19 +13,26 @@ def from_sqrtPriceX96(value: int) -> float:
     return (value**2) / (2**192)
 
 
+def to_sqrtPriceX96(value: float) -> int:
+    return int(value**0.5 * 2**96)
+
+
 def mul_shift(val, mul_by):
     return (val * mul_by) // Q128
 
 
-def get_sqrt_ratio_at_tick_alt(tick):
-    return int(sqrt(1.0001**tick) * Q96)
-
-
-def get_sqrt_ratio_at_tick(tick):
+def get_sqrt_ratio_at_tick(tick: int) -> int:
     """
     Get sqrtRatioX96 from a tick.
 
     Original Sol code: https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol#L23  # noqa
+
+    Its Python equivalent is:
+    ```python
+        def get_sqrt_ratio_at_tick(tick):
+            return int(sqrt(1.0001**tick) * Q96)
+    ```
+    Note: A Python equivalent don't give the same precision of the result.
 
     Parameters
     ----------
@@ -111,6 +115,8 @@ def get_amount0_delta(sqrt_ratio_ax_96, sqrt_ratio_bx_96, liquidity):
     return ((numerator1 * numerator2) // sqrt_ratio_bx_96) // sqrt_ratio_ax_96
 
 
+# TODO
+# replace with own functions
 def get_amount0(
     tick_current: int,
     sqrt_price_x_96: int,
@@ -160,30 +166,38 @@ def get_amount1(
 # Get Liquidity
 
 
-def get_liquidity0(amount, pa, pb):
+def get_liquidity0(amount: int, pa: int, pb: int) -> int:
+    """
+    Get a liquidity by sqrt price range and an amount of the first asset
+    """
     if pa > pb:
         pa, pb = pb, pa
-    return int((amount * (pa * pb) / Q96) / (pb - pa))
+    return int((amount * (pa * pb) // Q96) // (pb - pa))
 
 
-def get_liquidity1(amount, pa, pb):
+def get_liquidity1(amount: int, pa: int, pb: int) -> int:
+    """
+    Get a liquidity by a range of sqrt prices and an amount of the second asset
+    """
     if pa > pb:
         pa, pb = pb, pa
-    return int(amount * Q96 / (pb - pa))
+    return int(amount * Q96 // (pb - pa))
 
 
 def get_liquidity(
-    tick_current: int,
     sqrt_price_x_96: int,
-    tick_lower: int,
-    tick_upper: int,
+    sqrt_price_x_96_tick_lower: int,
+    sqrt_price_x_96_tick_upper: int,
     amount0: int,
     amount1: int,
 ) -> int:
-    pa = get_sqrt_ratio_at_tick(tick_lower)
-    pb = get_sqrt_ratio_at_tick(tick_upper)
+    """
+    Get liquidity of the position by a sqrt of a current price, a lower and upper and
+    amounts of assets
+    """
+    pa = sqrt_price_x_96_tick_lower  # get_sqrt_ratio_at_tick(tick_lower)
+    pb = sqrt_price_x_96_tick_upper  # get_sqrt_ratio_at_tick(tick_upper)
     pc = sqrt_price_x_96
-    pass
 
     liq0 = get_liquidity0(amount0, pc, pb)
     liq1 = get_liquidity1(amount1, pc, pa)
@@ -191,11 +205,43 @@ def get_liquidity(
 
 
 # Below implementation based on the great article of Atis Elsts
-# References
-# [1] Atis Elsts "LIQUIDITY MATH IN UNISWAP V3", https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf, 2022. # noqa
+# References:
+# [1]
+# [2] Atis Elsts "LIQUIDITY MATH IN UNISWAP V3", https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf, 2022. # noqa
 
 
-def get_amount1hr_from_range(p, pa, pb, amount0):
+def get_amount0_from_price_range(p: float, pa: float, pb: float, amount1):
+    """
+    Get amount1 from price range and amount0.
+
+    Ref. [1]
+
+    Parameters
+    ----------
+    p : float
+        current Price
+    pa : float
+        price of a lowerTick
+        (i.e.: `from_sqrtPriceX96(get_sqrt_ratio_at_tick(lower_tick))`)
+    pb : float
+        price of a a upperTick
+        (i.e.: `from_sqrtPriceX96(get_sqrt_ratio_at_tick(upper_tick))`)
+    amount0: float
+        Amount of the first asset (not in Wei)
+
+    Returns
+    -------
+    float
+        Amount of the first asset
+    """
+    p = max(min(p, pb), pa)
+    liquidity = amount1 / ((sqrt(p) - sqrt(pa)))  # Ref. [1] (8)
+    amount0 = liquidity * ((sqrt(pb) - sqrt(p)) / (sqrt(p) * sqrt(pb)))  # (11)
+
+    return amount0
+
+
+def get_amount1_from_price_range(p: float, pa: float, pb: float, amount0: float):
     """
     Get amount1 from price range and amount1.
 
@@ -203,20 +249,23 @@ def get_amount1hr_from_range(p, pa, pb, amount0):
 
     Parameters
     ----------
-    p : int
-        sqrtRatioX96 of current Price
-    pa : int
-        sqrtRatioX96 from a lowerTick (sqrtRatioAX96)
-    pb : int
-        sqrtRatioX96 from a upperTick (sqrtRatioAX96)
-    amount0: int
-        Amount of the first asset in Wei
+    p : float
+        current Price
+    pa : float
+        price of a lowerTick
+        (i.e.: `from_sqrtPriceX96(get_sqrt_ratio_at_tick(lower_tick))`)
+    pb : float
+        price of a a upperTick
+        (i.e.: `from_sqrtPriceX96(get_sqrt_ratio_at_tick(upper_tick))`)
+    amount0: float
+        Amount of the first asset (not in Wei)
 
     Returns
     -------
-    int
-        Amount of the second asset in Wei
+    float
+        Amount of the second asset
     """
+    p = max(min(p, pb), pa)
     liquidity_amount0 = (  # Ref. [1] (5)
         amount0 * (sqrt(p) * sqrt(pb)) / (sqrt(pb) - sqrt(p))
     )
@@ -224,9 +273,9 @@ def get_amount1hr_from_range(p, pa, pb, amount0):
     return amount1
 
 
-def get_amount0hr_from_range(p, pa, pb, amount1):
+def get_amount0_from_tick_range(p: int, pa: int, pb: int, amount1: int) -> int:
     """
-    Get amount1 from price range and amount0.
+    Get amount1 from a tick range and amount0.
 
     Ref. [1]
 
@@ -246,18 +295,18 @@ def get_amount0hr_from_range(p, pa, pb, amount1):
     int
         Amount of the first asset in Wei
     """
-    # p = abs(p)
-    # pa = abs(pa)
-    # pb = abs(pb)
-    liquidity = amount1 / ((sqrt(p) - sqrt(pa)))  # Ref. [1] (8)
-    amount0 = liquidity * ((sqrt(pb) - sqrt(p)) / (sqrt(p) * sqrt(pb)))  # (11)
+    p = max(min(p, pb), pa)
+
+    # liquidity_amount1 = (amount1 * Q96) // (p - pa)  # Ref. [1] (8)
+    liquidity_amount1 = get_liquidity1(amount1, pa, p)
+    amount0 = (liquidity_amount1 * Q96) * (pb - p) // (p * pb)  # (11)
 
     return amount0
 
 
-def get_amount1_from_range(p: int, pa: int, pb: int, amount0: int) -> int:
+def get_amount1_from_tick_range(p: int, pa: int, pb: int, amount0: int) -> int:
     """
-    Get amount1 from price range and amount1.
+    Get amount1 from tick range and amount1.
 
     Ref. [1] 3.2.1 Example 1: Amount of assets from a range
 
@@ -278,40 +327,12 @@ def get_amount1_from_range(p: int, pa: int, pb: int, amount0: int) -> int:
         Amount of the second asset in Wei
     """
     p = max(min(p, pb), pa)
-    liquidity_amount0 = (amount0 * (p * pb) / Q96) / (pb - p)  # Ref. [1] (5)
+    # liquidity_amount0 = (amount0 * (p * pb) / Q96) / (pb - p)  # Ref. [1] (5)
+    liquidity_amount0 = get_liquidity0(amount0, p, pb)
     amount1 = liquidity_amount0 * (p - pa) / Q96
     return int(amount1)
 
 
-def get_amount0_from_range(p, pa, pb, amount1):
-    """
-    Get amount1 from price range and amount0.
-
-    Ref. [1]
-
-    Parameters
-    ----------
-    p : int
-        sqrtRatioX96 of current Price
-    pa : int
-        sqrtRatioX96 from a lowerTick (sqrtRatioAX96)
-    pb : int
-        sqrtRatioX96 from a upperTick (sqrtRatioAX96)
-    amount1: int
-        Amount of the second asset in Wei
-
-    Returns
-    -------
-    int
-        Amount of the first asset in Wei
-    """
-    # p = abs(p)
-    # pa = abs(pa)
-    # pb = abs(pb)
-    p = max(min(p, pb), pa)
-
-    liquidity_amount1 = (amount1 * Q96) // (p - pa)  # Ref. [1] (8)
-    # amount0 = liquidity_amount1 * (pb - p) / (p * pb)  # (11)
-    amount0 = (liquidity_amount1 * Q96) * (pb - p) // (p * pb)  # (11)
-
-    return amount0
+def get_tick_from_price(price: float, token0_decimal: int, token1_decimal: int) -> int:
+    price_x96 = to_sqrtPriceX96(price)
+    return price_x96

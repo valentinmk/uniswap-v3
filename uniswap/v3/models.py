@@ -116,9 +116,19 @@ class NftPosition:
 
 
 @dataclass
-class UncheckedNftPosition:
-    token_id: int
+class UncheckedNftPositionRaw:
     pool: PoolData
+    current_tick: int
+    current_price_x96: int
+    lower_tick: int
+    upper_tick: int
+    amount0: int
+    amount1: int
+
+
+@dataclass
+class UncheckedNftPosition:
+    raw: UncheckedNftPositionRaw
     amount0: int = 0
     amount1: int = 0
     amount0HR: float = 0.0

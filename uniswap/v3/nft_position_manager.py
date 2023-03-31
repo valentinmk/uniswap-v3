@@ -1,12 +1,29 @@
 from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
-from uniswap.EtherClient.web3_client import EtherClient
-from uniswap.utils.helpers import decode_nft_URI
-from uniswap.v3.math import MAX_UINT_128, get_amount0, get_amount1
-from uniswap.v3.models import NftPosition, NftPositionRaw, NftPositionUriData
-from uniswap.v3.pool import Pool
 from web3 import Web3
 from web3.types import TxReceipt
+
+from uniswap.EtherClient.web3_client import EtherClient
+from uniswap.utils.helpers import decode_nft_URI
+from uniswap.v3.math import (
+    MAX_UINT_128,
+    get_sqrt_ratio_at_tick,
+    get_amount0,
+    get_amount0_from_price_range,
+    get_amount0_from_tick_range,
+    get_amount1,
+    get_amount1_from_price_range,
+    get_amount1_from_tick_range,
+)
+from uniswap.v3.models import (
+    NftPosition,
+    NftPositionRaw,
+    NftPositionUriData,
+    PoolData,
+    UncheckedNftPosition,
+    UncheckedNftPositionRaw,
+)
+from uniswap.v3.pool import Pool
 
 from .base import BaseContract
 
@@ -146,7 +163,7 @@ class NonfungiblePositionManager(BaseContract):
         self,
         token0: ChecksumAddress,
         token1: ChecksumAddress,
-        fee,
+        fee: int,
         tick_lower: int,
         tick_upper: int,
         amount0: int,
@@ -155,7 +172,7 @@ class NonfungiblePositionManager(BaseContract):
         amount1_min: int,
         recipient: ChecksumAddress = None,
         deadline: int = 2**64,
-        wait=False,
+        wait: bool = False,
     ) -> HexBytes | TxReceipt:
         """Mint
 
@@ -317,3 +334,79 @@ class NonfungiblePositionManager(BaseContract):
         if wait:
             return self.w3.eth.wait_for_transaction_receipt(tx_hash)
         return tx_hash
+
+    def _create_position(
+        self,
+        pool: PoolData,
+        current_tick: int,
+        current_price_x96: int,
+        lower_tick: int,
+        upper_tick: int,
+        amount0: int = None,
+        amount1: int = None,
+    ) -> UncheckedNftPositionRaw:
+        if not amount0 and not amount1:
+            raise ValueError
+        lower_price_x96 = get_sqrt_ratio_at_tick(lower_tick)
+        upper_price_x96 = get_sqrt_ratio_at_tick(upper_tick)
+        if amount0:
+            amount1 = get_amount1_from_tick_range(
+                p=current_price_x96,
+                pa=lower_price_x96,
+                pb=upper_price_x96,
+                amount0=amount0,
+            )
+        elif amount1:
+            amount0 = get_amount0_from_tick_range(
+                p=current_price_x96,
+                pa=lower_price_x96,
+                pb=upper_price_x96,
+                amount1=amount1,
+            )
+        return UncheckedNftPositionRaw(
+            pool=pool,
+            current_tick=current_tick,
+            current_price_x96=current_price_x96,
+            lower_tick=lower_tick,
+            upper_tick=upper_tick,
+            amount0=amount0,
+            amount1=amount1,
+        )
+
+    def create_position(
+        self,
+        pool: PoolData,
+        current_price: float,
+        lower_price: float,
+        upper_price: float,
+        amount0: float = None,
+        amount1: float = None,
+    ) -> UncheckedNftPosition:
+        if not amount0 and not amount1:
+            raise ValueError
+        if amount0:
+            amount1HR = get_amount1_from_price_range(
+                p=current_price,
+                pa=lower_price,
+                pb=upper_price,
+                amount0=amount0,
+            )
+            amount0HR = amount0
+        elif amount1:
+            amount0HR = get_amount0_from_price_range(
+                p=current_price,
+                pa=lower_price,
+                pb=upper_price,
+                amount1=amount1,
+            )
+            amount1HR = amount1
+        return UncheckedNftPosition(
+            raw=None,
+            amount0=0,
+            amount1=0,
+            amount0HR=amount0HR,
+            amount1HR=amount1HR,
+            token0=pool.token0,
+            token1=pool.token1,
+            fee=pool.immutables.fee,
+        )
