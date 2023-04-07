@@ -1,4 +1,4 @@
-from math import sqrt
+from math import sqrt, log
 
 Q32 = 2**32
 Q96 = 2**96
@@ -333,6 +333,6 @@ def get_amount1_from_tick_range(p: int, pa: int, pb: int, amount0: int) -> int:
     return int(amount1)
 
 
-def get_tick_from_price(price: float, token0_decimal: int, token1_decimal: int) -> int:
-    price_x96 = to_sqrtPriceX96(price)
-    return price_x96
+def get_tick_from_price(price: float) -> int:
+    tick = log(price, 1.0001)
+    return int(round(tick, 0))

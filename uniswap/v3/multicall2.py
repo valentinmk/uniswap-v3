@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from eth_abi import decode_single
+from eth_abi import decode
 from eth_typing import ChecksumAddress
 
 # from hexbytes import HexBytes
@@ -9,7 +9,7 @@ from uniswap.EtherClient.web3_client import EtherClient
 from web3 import Web3
 
 # from web3.types import TxReceipt
-from web3.contract import ContractFunction
+from web3.contract.contract import ContractFunction
 
 from .base import BaseContract
 
@@ -55,7 +55,7 @@ class Multicall2(BaseContract):
         block_number, results = multicall2_call.call()
         for call, result in zip(calls, results):
             list_of_typ = [i["type"] for i in call.outputs]
-            typ = f"({','.join(list_of_typ)})"
-            call.returns = decode_single(typ=typ, data=result)
+            # typ = f"({','.join(list_of_typ)})"
+            call.returns = decode(types=list_of_typ, data=result)
             call.block_number = block_number
         return calls

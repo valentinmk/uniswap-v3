@@ -1,6 +1,6 @@
 import os
 import json
-from eth_abi import decode_single
+from eth_abi import decode
 from web3 import Web3
 from uniswap.EtherClient import web3_client
 from uniswap.v3.main import UniswapV3
@@ -13,7 +13,7 @@ def test_draft():
     # TODO
     # Work in progress. It's a mess for now.
     # provide complete integration and unit tests.
-    MY_ADDRESS = Web3.toChecksumAddress("0x997d4c6A7cA5d524babDf1b205351f6FB623b5E7")
+    MY_ADDRESS = Web3.to_checksum_address("0x997d4c6A7cA5d524babDf1b205351f6FB623b5E7")
 
     ETH_HTTP_URL = os.environ.get("ETH_PROVIDER_URL")
     ETH_WALLET_PASS = os.environ.get("ETH_WALLET_PASS")
@@ -89,7 +89,7 @@ def test_draft():
         print(usdc_outputs[i])
         list_of_typ = [j["type"] for j in usdc_outputs[i]]
         print(list_of_typ)
-        print(decode_single(typ=f"({','.join(list_of_typ)})", data=o))
+        print(decode(types=list_of_typ, data=o))
 
     print("_" * 100)
     print(uni.multicall2.get_functions())

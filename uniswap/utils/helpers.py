@@ -8,3 +8,7 @@ def decode_nft_URI(data: dict) -> dict:
     image = base64.b64decode(data_decoded["image"].split(",")[1]).decode()
     data_decoded["image"] = image
     return data_decoded
+
+
+def normalize_tick_by_spacing(tick: int, spacing: int) -> int:
+    return tick // spacing * spacing

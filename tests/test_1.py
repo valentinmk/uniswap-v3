@@ -14,8 +14,10 @@ def test_draft():
 
     uni = UniswapV3(client)
     usdc = EIP20Contract(client, client.w3, ERC20_TOKENS[GOERLI]["USDC"])
+    dai = EIP20Contract(client, client.w3, ERC20_TOKENS[GOERLI]["DAI"])
     weth = EIP20Contract(client, client.w3, ERC20_TOKENS[GOERLI]["WETH"])
     print(usdc.data)
+    print(dai.data)
     print(weth.data)
     # print(uni.factory.get_functions())
 

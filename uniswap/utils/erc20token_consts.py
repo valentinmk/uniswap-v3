@@ -8,7 +8,16 @@ GOERLI_USDC_TOKEN = Token(
     name="USD Coin",
     isNative=False,
     isToken=True,
-    address="0xD87Ba7A50B2E7E660f678A895E4B72E7CB4CCd9C",
+    address="0x07865c6E87B9F70255377e024ace6630C1Eaa37F",
+)
+GOERLI_DAI_TOKEN = Token(
+    chainId=5,
+    decimals=18,
+    symbol="DAI",
+    name="Dai Stablecoin",
+    isNative=False,
+    isToken=True,
+    address="0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844",
 )
 GOERLI_WETH_TOKEN = Token(
     chainId=5,

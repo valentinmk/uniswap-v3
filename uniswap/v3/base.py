@@ -3,7 +3,7 @@ import os
 
 from eth_typing import ChecksumAddress
 from web3 import Web3
-from web3.contract import Contract, ContractFunctions
+from web3.contract.contract import Contract, ContractFunctions
 
 # from ..utils.consts import CONTRACT_ADDRESSES
 

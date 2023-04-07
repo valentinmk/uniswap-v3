@@ -15,7 +15,7 @@ def test_draft():
     # TODO
     # Work in progress. It's a mess for now.
     # provide complete integration and unit tests.
-    MY_ADDRESS = Web3.toChecksumAddress("0x997d4c6A7cA5d524babDf1b205351f6FB623b5E7")
+    MY_ADDRESS = Web3.to_checksum_address("0x997d4c6A7cA5d524babDf1b205351f6FB623b5E7")
 
     ETH_HTTP_URL = os.environ.get("ETH_PROVIDER_URL")
     ETH_WALLET_PASS = os.environ.get("ETH_WALLET_PASS")

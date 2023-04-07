@@ -97,6 +97,7 @@ class NftPositionRaw:
     token_URI_data: None
 
 
+# TODO: Model too wordy, need to clean up
 @dataclass
 class NftPosition:
     token_id: int
@@ -110,6 +111,10 @@ class NftPosition:
     unclaimedfeesamount1: int = 0
     unclaimedfeesamount0HR: float = 0.0
     unclaimedfeesamount1HR: float = 0.0
+    lower_price: float = 0.0
+    upper_price: float = 0.0
+    lower_price_inverse: float = 0.0
+    upper_price_inverse: float = 0.0
     token0: Token = None
     token1: Token = None
     fee: float = 0.0
@@ -129,6 +134,8 @@ class UncheckedNftPositionRaw:
 @dataclass
 class UncheckedNftPosition:
     raw: UncheckedNftPositionRaw
+    lower_price: float = 0.0
+    upper_price: float = 0.0
     amount0: int = 0
     amount1: int = 0
     amount0HR: float = 0.0
@@ -136,3 +143,10 @@ class UncheckedNftPosition:
     token0: Token = None
     token1: Token = None
     fee: float = 0.0
+    # adjusted data (by tickSpacing)
+    adj_amount0: int = 0
+    adj_amount1: int = 0
+    adj_amount0HR: float = 0.0
+    adj_amount1HR: float = 0.0
+    adj_lower_price: float = 0.0
+    adj_upper_price: float = 0.0
