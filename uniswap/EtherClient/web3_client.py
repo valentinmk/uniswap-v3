@@ -3,6 +3,7 @@ from web3 import Web3
 from web3.providers.rpc import HTTPProvider
 from web3.providers.async_rpc import AsyncHTTPProvider
 from web3.providers.websocket import WebsocketProvider
+from web3.eth import AsyncEth
 
 
 class EtherClient:
@@ -28,7 +29,11 @@ class EtherClient:
     def init_w3(self) -> Web3:
         if self.url is not None:
             if self.http_async is True:
-                return Web3(AsyncHTTPProvider(self.url))
+                return Web3(
+                    AsyncHTTPProvider(self.url),
+                    modules={"eth": (AsyncEth,)},
+                    middlewares=[],
+                )
             else:
                 return Web3(HTTPProvider(self.url))
         elif self.ws_url is not None:
