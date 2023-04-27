@@ -7,6 +7,31 @@ from web3.eth import AsyncEth
 
 
 class EtherClient:
+    """
+    Client helper for connect to blockchain.
+    It should work with all supported blockchains under web3.py.
+
+    Parameters
+    ----------
+    http_url : str
+        [Optional] url for HTTPProvider. Required, if `ws_url` not provided.
+    ws_url : str
+        [Optional] url for WSProvider. Required, if `http_url` not provided.
+    http_async : bool
+        [Optional] True for use AsyncHTTPProvider instead of HTTPProvider.
+        By default is False.
+    my_address : str
+        [Optional] Address of the wallet
+    my_wallet_pass : str
+        [Optional] Password for the wallet
+    my_keyfile_json : str
+        [Optional] Secret file encrypted with `my_wallet_pass`
+
+    Returns
+    -------
+    EtherClient
+    """
+
     def __init__(
         self,
         http_url: str = None,

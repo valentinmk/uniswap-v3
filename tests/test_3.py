@@ -1,153 +1,195 @@
-import os
+# import os
+import pytest
 
-from uniswap.EtherClient import web3_client
-from uniswap.utils.consts import ERC20_TOKENS, GOERLI
 from uniswap.utils.erc20token import EIP20Contract
-from uniswap.utils.erc20token_consts import (
-    GOERLI_USDC_TOKEN,
-    GOERLI_WETH_TOKEN,
-)
 from uniswap.v3.main import UniswapV3
-from web3 import Web3
+from uniswap.v3.models import Token
 
 
-def test_draft():
-    # TODO
-    # Work in progress. It's a mess for now.
-    # provide complete integration and unit tests.
-    MY_ADDRESS = Web3.to_checksum_address("0x997d4c6A7cA5d524babDf1b205351f6FB623b5E7")
+@pytest.mark.release
+def test_ERC20_reset_allowance(uni: UniswapV3, dai_contract: EIP20Contract):
+    tx_hash = dai_contract.approve(uni.swap_router_02.address, 0, wait=True, force=True)
+    assert tx_hash.get("transactionHash", None) is not None
 
-    ETH_HTTP_URL = os.environ.get("ETH_PROVIDER_URL")
-    ETH_WALLET_PASS = os.environ.get("ETH_WALLET_PASS")
-    ETH_WALLET_JSON_PATH = os.environ.get("ETH_WALLET_JSON_PATH")
-    with open(ETH_WALLET_JSON_PATH) as keyfile:
-        ETH_WALLET_JSON = keyfile.read()
-    _w3 = web3_client.EtherClient(
-        http_url=ETH_HTTP_URL,
-        my_address=MY_ADDRESS,
-        my_wallet_pass=ETH_WALLET_PASS,
-        my_keyfile_json=ETH_WALLET_JSON,
-    )
-    print(_w3.w3.eth.block_number)
-    uni = UniswapV3(_w3)
 
-    usdc = EIP20Contract(_w3, _w3.w3, ERC20_TOKENS[GOERLI]["USDC"])
-    print(usdc)
-    print(usdc.data)
-    print(uni.swap_router_02.address)
-    print(usdc.allowance(uni.swap_router_02.address))
-    print(
-        usdc.approve(
-            uni.swap_router_02.address, 1_000_000, wait=False, force=False
-        ).__repr__()
-    )
+@pytest.mark.release
+def test_ERC20_allowance(uni: UniswapV3, dai_contract: EIP20Contract):
+    allowance = dai_contract.allowance(uni.swap_router_02.address)
+    for i in range(10):
+        # retry 10 times to new get updated allowance value
+        if allowance == 0:
+            break
+        else:
+            allowance = dai_contract.allowance(uni.swap_router_02.address)
+            print(f"allowance = {allowance}. Retry...")
+    assert allowance == 0
 
-    print(uni.quoter)
-    print(uni.quoter.get_functions())
+
+@pytest.mark.release
+def test_ERC20_approve(uni: UniswapV3, dai_contract: EIP20Contract):
+    tx_hash = dai_contract.approve(uni.swap_router_02.address, 100.0, wait=True)
+    assert tx_hash.get("transactionHash", None) is not None
+    allowance = dai_contract.allowance(uni.swap_router_02.address)
+    for i in range(10):
+        # retry 10 times to new get updated allowance value
+        if allowance == 0:
+            break
+        else:
+            allowance = dai_contract.allowance(uni.swap_router_02.address)
+            print(f"allowance = {allowance}. Retry...")
+    assert allowance == 100
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_ERC20_approve_no_need(uni: UniswapV3, weth_contract: EIP20Contract):
+    tx_hash = weth_contract.approve(uni.swap_router_02.address, 100.0)
+    assert tx_hash is None
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_quoter_invoke(uni: UniswapV3):
+    quoter_functions = uni.quoter.get_functions()
+    function_list = [
+        "quoteExactInput",
+        "quoteExactInputSingle",
+        "quoteExactOutput",
+        "quoteExactOutputSingle",
+    ]
+    assert all([i in quoter_functions for i in function_list])
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_quoter(uni: UniswapV3, weth: Token, dai: Token):
+    amount_in = int(100 * 10**dai.decimals)
     fee = 500
-    amount_in = int(1.5 * 10**GOERLI_USDC_TOKEN.decimals)
-    print(
+    exact_output = (
         uni.quoter.functions.quoteExactInputSingle(
-            GOERLI_USDC_TOKEN.address, GOERLI_WETH_TOKEN.address, fee, amount_in, 0
+            dai.address, weth.address, fee, amount_in, 0
         ).call()
-        / 10**GOERLI_WETH_TOKEN.decimals
+        / 10**dai.decimals
     )
-    print(
-        uni.quoter._get_quote(
-            GOERLI_USDC_TOKEN.address,
-            GOERLI_WETH_TOKEN.address,
-            500,
-            int(1.5 * 10**6),
-            0,
-        )
-    )
-    print(uni.quoter.get_trade(GOERLI_USDC_TOKEN, GOERLI_WETH_TOKEN, 0.05, 1.5))
-    print("*" * 100)
-    print(uni.swap_router.get_functions())
-    pre_trade = uni.quoter.get_trade(GOERLI_USDC_TOKEN, GOERLI_WETH_TOKEN, 0.05, 1.5)
-    tokenIn = pre_trade.route[0].address
-    tokenOut = pre_trade.route[1].address
-    fee = fee
-    recipient = MY_ADDRESS
-    deadline = 2**64
-    inputAmount = uni.quoter.amount_to_wei(pre_trade.route[0], pre_trade.inputAmount)
-    amountOutMinimum = uni.quoter.amount_to_wei(
-        pre_trade.route[0], pre_trade.outputAmount
-    )
-    sqrtPriceLimitX96 = 0
-    params = (
-        tokenIn,
-        tokenOut,
-        fee,
-        recipient,
-        deadline,
-        inputAmount,
-        amountOutMinimum,
-        sqrtPriceLimitX96,
-    )
-    print(params)
-    print(uni.swap_router.functions.exactInputSingle(params))
+    quote = uni.quoter._get_quote(dai.address, weth.address, 500, amount_in, 0)
+    assert quote.inputAmount == amount_in
+    assert quote.outputAmount / 10**weth.decimals == exact_output
+    assert weth.address in quote.route and dai.address in quote.route
 
-    print(uni.swap_router_02.get_functions())
 
+@pytest.mark.release
+@pytest.mark.devel
+def test_quoter_no_data(uni: UniswapV3):
+    with pytest.raises(NotImplementedError) as exc_info:
+        uni.quoter.data
+    assert str(exc_info.value) == ""
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_quoter_get_trade(uni: UniswapV3, weth: Token, dai: Token):
+    unchecked_trade = uni.quoter.get_trade(dai, weth, 0.05, 1.5)
+    assert (
+        unchecked_trade.inputAmount
+        == unchecked_trade.raw.inputAmount / 10 ** unchecked_trade.route[0].decimals
+    )
+    assert (
+        unchecked_trade.outputAmount
+        == unchecked_trade.raw.outputAmount / 10 ** unchecked_trade.route[1].decimals
+    )
+    assert (
+        weth.address in unchecked_trade.raw.route
+        and dai.address in unchecked_trade.raw.route
+    )
+    assert unchecked_trade.fee * 10_000 == unchecked_trade.raw.fee
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_swap_router_02_invoke(uni: UniswapV3):
+    fn_names = uni.swap_router_02.get_functions()
+    function_list = [
+        "exactInput",
+        "exactInputSingle",
+        "exactOutput",
+        "exactOutputSingle",
+        "multicall",
+    ]
+    assert all([i in fn_names for i in function_list])
+    functions = uni.swap_router_02.functions
+    assert functions.multicall.fn_name == "multicall"
+    return
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_swap_router_02_unit(uni: UniswapV3):
+    with pytest.raises(NotImplementedError) as exc_info:
+        uni.swap_router_02.data
+    assert str(exc_info.value) == ""
+    with pytest.raises(NotImplementedError) as exc_info:
+        uni.swap_router_02._get_data()
+    assert str(exc_info.value) == ""
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_swap_router_02_decode_multi(uni: UniswapV3):
     example = "0x5ae401dc00000000000000000000000000000000000000000000000000000000632b3c80000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000c4f3995c6700000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f000000000000000000000000000000000000000000000000000000000098968000000000000000000000000000000000000000000000000000000000632b40d0000000000000000000000000000000000000000000000000000000000000001bf67473882cb66a4ca50102d85769b98878e203639c10ada84e70eaa4c9395a9d195ccc656a79f309b46cdd911a75fec628121ab43a4a6c7ee4f6f6eba3eb26920000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e404e45aaf00000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f000000000000000000000000c778417e063141139fce010982780140aa0cd5ab0000000000000000000000000000000000000000000000000000000000002710000000000000000000000000997d4c6a7ca5d524babdf1b205351f6fb623b5e70000000000000000000000000000000000000000000000000000000000989680000000000000000000000000000000000000000000000000003b9849edc15f3d000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"  # noqa
-    # print(uni.swap_router_02.decode_multicall(example))
-    print("-" * 100)
-    [print(i) for i in uni.swap_router_02.decode_multicall(example)]
-    print("-" * 100)
+    decoded_call = uni.swap_router_02.decode_multicall(example)
+    assert decoded_call[0][0].fn_name == "selfPermit"
+    assert all(
+        [
+            i[1]["params"]["recipient"] == "0x997d4c6A7cA5d524babDf1b205351f6FB623b5E7"
+            for i in decoded_call[1:]
+        ]
+    )
     example2 = "0x5ae401dc00000000000000000000000000000000000000000000000000000000632b3efc00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e45023b4df000000000000000000000000c778417e063141139fce010982780140aa0cd5ab00000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f00000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000997d4c6a7ca5d524babdf1b205351f6fb623b5e700000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000005ff0008f0e76e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"  # noqa
-    [print(i) for i in uni.swap_router_02.decode_multicall(example2)]
-    print("-" * 100)
+    decoded_call = uni.swap_router_02.decode_multicall(example2)
+    assert decoded_call[0][0].fn_name == "exactOutputSingle"
     example3 = "0x5ae401dc00000000000000000000000000000000000000000000000000000000632b3f8c00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e404e45aaf000000000000000000000000c778417e063141139fce010982780140aa0cd5ab00000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f00000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000997d4c6a7ca5d524babdf1b205351f6fb623b5e700000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000000090a7c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"  # noqa
-    [print(i) for i in uni.swap_router_02.decode_multicall(example3)]
-    print("-" * 100)
+    decoded_call = uni.swap_router_02.decode_multicall(example3)
+    assert decoded_call[0][0].fn_name == "exactInputSingle"
     # AAVE -> USDC with complex route
     example4 = "0x5ae401dc00000000000000000000000000000000000000000000000000000000632b40580000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000124b858183f00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000080000000000000000000000000997d4c6a7ca5d524babdf1b205351f6fb623b5e70000000000000000000000000000000000000000000000001bc16d674ec800000000000000000000000000000000000000000000000000000000000000b598b30000000000000000000000000000000000000000000000000000000000000042a17669420ed99fac51308567b08b7bac86837baf002710c778417e063141139fce010982780140aa0cd5ab0001f407865c6e87b9f70255377e024ace6630c1eaa37f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"  # noqa
-    [print(i) for i in uni.swap_router_02.decode_multicall(example4)]
+    decoded_call = uni.swap_router_02.decode_multicall(example4)
+    assert decoded_call[0][1]["params"]["amountIn"] == 2000000000000000000
     # ETH -> USDC with 3 diff v3 pools
-    print("-" * 100)
     example5 = "0x5ae401dc00000000000000000000000000000000000000000000000000000000632b424400000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000001a000000000000000000000000000000000000000000000000000000000000002c0000000000000000000000000000000000000000000000000000000000000042000000000000000000000000000000000000000000000000000000000000000e404e45aaf000000000000000000000000c778417e063141139fce010982780140aa0cd5ab00000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f0000000000000000000000000000000000000000000000000000000000000bb80000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000136dcc951d8c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e404e45aaf000000000000000000000000c778417e063141139fce010982780140aa0cd5ab00000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f00000000000000000000000000000000000000000000000000000000000001f40000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000058d15e17628000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000124b858183f00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000002c68af0bb14000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000042c778417e063141139fce010982780140aa0cd5ab0001f4ad6d458402f60fd3bd25163575031acdce07538d0001f407865c6e87b9f70255377e024ace6630c1eaa37f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000064df2ab5bb00000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f00000000000000000000000000000000000000000000000000000000462164a0000000000000000000000000997d4c6a7ca5d524babdf1b205351f6fb623b5e700000000000000000000000000000000000000000000000000000000"  # noqa
-    [print(i) for i in uni.swap_router_02.decode_multicall(example5)]
+    decoded_call = uni.swap_router_02.decode_multicall(example5)
+    assert decoded_call[0][1]["params"]["fee"] == 3000
+    assert decoded_call[1][1]["params"]["fee"] == 500
+    assert decoded_call[2][0].fn_name == "exactInput"
+    assert decoded_call[3][0].fn_name == "sweepToken"
+    assert decoded_call[3][1]["token"] == "0x07865c6E87B9F70255377e024ace6630C1Eaa37F"
     # USDC -> WETH with 1 v3 pool 500
     example6 = "0x5ae401dc00000000000000000000000000000000000000000000000000000000632dc558000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000c4f3995c6700000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f0000000000000000000000000000000000000000000000000000000005f5e10000000000000000000000000000000000000000000000000000000000632dca08000000000000000000000000000000000000000000000000000000000000001b451ead3fd3f8f64480e5fccd2773ba46f10e6bc1942d8bab6b60c590120eae48535ffe6d3f411532c6695c6cd527f59362a8f7283c179480706c087e3f4db2df0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e404e45aaf00000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f000000000000000000000000c778417e063141139fce010982780140aa0cd5ab00000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000997d4c6a7ca5d524babdf1b205351f6fb623b5e70000000000000000000000000000000000000000000000000000000005f5e100000000000000000000000000000000000000000000000000027601f87700d0fc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"  # noqa
-    [print(i) for i in uni.swap_router_02.decode_multicall(example6)]
-    print("+" * 100)
-    # print(uni.swap_router_02.swapExactTokensForTokens(pre_trade, MY_ADDRESS))
-    print(
-        uni.quoter.functions.quoteExactInputSingle(
-            GOERLI_USDC_TOKEN.address,  # tokenIn
-            GOERLI_WETH_TOKEN.address,  # tokenOut
-            500,  # fee
-            int(100 * 10**18),  # amountIn
-            0,  # sqrtPriceLimitX96
-        ).call()
+    decoded_call = uni.swap_router_02.decode_multicall(example6)
+    assert decoded_call[0][0].fn_name == "selfPermit"
+    assert decoded_call[1][1]["params"]["fee"] == 500
+
+
+@pytest.mark.release
+def test_quoter_execute_trade(eth_client, uni: UniswapV3, weth: Token, dai: Token):
+    # wait = True
+    unchecked_trade = uni.quoter.get_trade(
+        token0=dai, token1=weth, fee=1, amount_in=10
+    )  # Sell 10 Dai
+    print(unchecked_trade)
+    tx_hash = uni.swap_router_02.swapExactTokensForTokens(
+        unchecked_trade=unchecked_trade,
+        to=eth_client.address,
+        slippage=0.5,
+        wait=True,
     )
-    pre_trade = uni.quoter.get_trade(
-        GOERLI_USDC_TOKEN, GOERLI_WETH_TOKEN, fee=0.05, amount_in=100
+    assert tx_hash.get("transactionHash", None) is not None
+    # wait = False
+    unchecked_trade = uni.quoter.get_trade(
+        token0=dai, token1=weth, fee=1, amount_in=10
+    )  # Sell 10 Dai
+    tx_hash = uni.swap_router_02.swapExactTokensForTokens(
+        unchecked_trade=unchecked_trade,
+        to=eth_client.address,
+        slippage=0.5,
     )
-    print(pre_trade)
-    # print(
-    #     uni.swap_router_02.swapExactTokensForTokens(
-    #         pre_trade, MY_ADDRESS, slippage=5
-    #     ).__repr__()
-    # )
-    # ######### ---- ####
-    #  call = uni.swap_router_02.functions.exactInputSingle(
-    #      (
-    #          ROPSTEN_USDC.address,
-    #          ROPSTEN_WETH.address,
-    #          500,  # fee
-    #          MY_ADDRESS,  # recipient
-    #          10 * 10**6,  # amountIn
-    #          0,  # amountOutMinimum
-    #          0,  # sqrtPriceLimitX96
-    #      )
-    #  )
-    #  print(call)
-    #  call.buildTransaction(
-    #      {
-    #          "chainId": 3,
-    #          "from": MY_ADDRESS,
-    #          "nonce": _w3.w3.eth.getTransactionCount(MY_ADDRESS),
-    #      }
-    #  )
+    assert tx_hash

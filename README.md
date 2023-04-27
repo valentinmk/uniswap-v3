@@ -63,3 +63,10 @@ An unofficial python client for Uniswap V3, built for human beings.
 
 Use `export $(cat _.env | xargs)` to load yours `_.env` file in the terminal.
 > END
+
+## Testing
+
+Before testing run `pip install -r requirements_dev.txt`.
+Runs with `pytest -vs tests/test_3.py -m devel --cov uniswap`.
+For main branch releases will be executed via `pytest tests -m release --cov uniswap`.
+Please check `tests/conftest.py` and `pytest.ini` for details.

@@ -23,7 +23,7 @@ class Quoter(BaseContract):
         """Get human readable information from pool"""
         if self._data is None:
             self._data = self._get_data()
-        return self._data
+        # return self._data
 
     def amount_to_wei(self, token: Token, amount):
         return int(amount * 10**token.decimals)
@@ -54,6 +54,24 @@ class Quoter(BaseContract):
         unchecked_trade = self._get_quote(
             token0.address, token1.address, int(fee * 10_000), amount_in_to_wei, 0
         )
+        """
+        Get Unchecked trade record with a current price and amount information
+
+        Parameters
+        ----------
+        token0 : Token
+            Token0 form a pair of tokens.
+        token1 : Token
+            Token1 form a pair of tokens.
+        fee : float
+            A fee level in percent. i.e. 0.05% == 500, 0.1% = 1000, 0.3% == 3000
+        amount_in : float
+            Amount of the Token0 to trade
+
+        Returns
+        -------
+        UncheckedTrade
+        """
         quote = self.amount_from_wei(token1, unchecked_trade.outputAmount)
         return UncheckedTrade(
             raw=unchecked_trade,

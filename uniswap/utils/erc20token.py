@@ -3,7 +3,6 @@ from functools import lru_cache
 from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 from uniswap.EtherClient.web3_client import EtherClient
-from web3 import Web3
 from web3.types import TxReceipt
 
 from ..v3.base import BaseContract
@@ -12,14 +11,29 @@ from ..v3.models import Token
 
 @lru_cache
 class EIP20Contract(BaseContract):
+    """
+    ERC20 contract wrapper.
+    Please refer official documentation:
+    https://ethereum.org/en/developers/docs/standards/tokens/erc-20/
+
+    Parameters
+    ----------
+    client : EtherClient
+        EtherClient Client
+    address : ChecksumAddress
+        Address of the ERC20 token smart contract
+    abi_path : str
+        Path to json with ABI of the ERC20 token contract. By default is
+        `../utils/abis/eip20.abi.json`
+    """
+
     def __init__(
         self,
         client: EtherClient,
-        w3: Web3,
         address: ChecksumAddress,
         abi_path: str = "../utils/abis/eip20.abi.json",
-    ):
-        super().__init__(w3, address, abi_path)
+    ) -> None:
+        super().__init__(client.w3, address, abi_path)
         self.client: EtherClient = client
         self._data = None
 
@@ -44,10 +58,28 @@ class EIP20Contract(BaseContract):
         return self.allowance(contract_address) >= amount
 
     def approve(
-        self, contract_address: ChecksumAddress, amount, wait=False, force=False
+        self, contract_address: ChecksumAddress, amount: float, wait=False, force=False
     ) -> HexBytes | TxReceipt | None:
+        """
+        Send transaction to approve this token with `contract_address` for an `amount`.
+
+        Parameters
+        ----------
+        contract_address : ChecksumAddress
+            EtherClient Client
+        amount : float
+            Amount to be allowed in human readable format.
+        wait : bool
+            [Optional]. If true, execution will be locked until transaction not been
+            verified by blockchain.
+            By default is False.
+        force : bool
+            [Optional]. If true, will submit approve transaction in anyway.
+            If false, will check current allowance and if it is less then requested,
+            then submit a transaction.
+            By default is False.
+        """
         # TODO. It is not good to return diff results
-        """Send transaction to approve this token with `contract_address` for an `amount`."""  # noqa
         if self.is_allowance_enough(contract_address, amount) and not force:
             # TODO. It must be an INFO logging message
             print(
@@ -58,11 +90,11 @@ class EIP20Contract(BaseContract):
             return None
         amount_in_wei = int(amount * 10**self.data.decimals)
         function_call = self.functions.approve(contract_address, amount_in_wei)
-        transaction = function_call.buildTransaction(
+        transaction = function_call.build_transaction(
             {
                 "chainId": self.w3.eth.chain_id,
                 "from": self.client.address,
-                "nonce": self.w3.eth.getTransactionCount(self.client.address),
+                "nonce": self.w3.eth.get_transaction_count(self.client.address),
             }
         )
         private_key = self.w3.eth.account.decrypt(

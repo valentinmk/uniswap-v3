@@ -13,7 +13,23 @@ from .multicall2 import Multicall2
 
 
 class UniswapV3:
+    """
+    Module to interact with Uniswap v3 smart contracts.
+    """
+
     def __init__(self, client: EtherClient) -> None:
+        """
+        Module to interact with Uniswap v3 smart contracts.
+
+        Parameters
+        ----------
+        client : EtherClient
+            EtherClient Client
+
+        Returns
+        -------
+        UniswapV3
+        """
         self.client: EtherClient = client
         self.w3: Web3 = client.w3
         self._factory: Factory = None
@@ -52,7 +68,6 @@ class UniswapV3:
         if self._swap_router_02 is None:
             self._swap_router_02 = SwapRouter02(
                 self.client,
-                self.w3,
                 CONTRACT_ADDRESSES[self.w3.eth.chain_id]["swap_router_02"],
             )
         return self._swap_router_02
@@ -86,8 +101,26 @@ class UniswapV3:
     def get_pool(
         self, token0: ChecksumAddress, token1: ChecksumAddress, fee: int
     ) -> Pool:
+        """
+        Return the Pool contract wrapper.
+        Please refer official documentation:
+        https://docs.uniswap.org/contracts/v3/reference/core/UniswapV3Pool
+
+        Parameters
+        ----------
+        token0 : ChecksumAddress
+            Token0 contract address
+        token1 : ChecksumAddress
+            Token1 contract address
+        fee: int
+            Fee of the pool
+
+        Returns
+        -------
+        `Pool`
+        """
         if self.is_fee_valid(fee):
             pool_address = self.factory.functions.getPool(token0, token1, fee).call()
-            return Pool(client=self.client, w3=self.w3, address=pool_address)
+            return Pool(client=self.client, address=pool_address)
         else:
             raise BaseException("Invalid fee. Should be in [100, 500, 3000, 10000]")

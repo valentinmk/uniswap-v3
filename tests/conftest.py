@@ -2,16 +2,16 @@ import os
 
 import pytest
 from web3 import Web3
+from uniswap.EtherClient.web3_client import EtherClient
 from uniswap.EtherClient import web3_client
 
 from uniswap.v3.main import UniswapV3
 from uniswap.v3.models import Token
-
-# from uniswap.utils.erc20token import EIP20Contract
+from uniswap.utils.erc20token import EIP20Contract
 from uniswap.utils.erc20token_consts import GOERLI_DAI_TOKEN, GOERLI_WETH_TOKEN
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def eth_client():
     MY_ADDRESS = Web3.to_checksum_address("0x997d4c6A7cA5d524babDf1b205351f6FB623b5E7")
 
@@ -29,21 +29,33 @@ def eth_client():
     return eth_client
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def uni(eth_client) -> UniswapV3:
     return UniswapV3(eth_client)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def weth() -> Token:
     return GOERLI_WETH_TOKEN
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def dai() -> Token:
     return GOERLI_DAI_TOKEN
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
+def dai_contract(eth_client: EtherClient, dai) -> EIP20Contract:
+    contract = EIP20Contract(eth_client, dai.address)
+    return contract
+
+
+@pytest.fixture(scope="module")
+def weth_contract(eth_client: EtherClient, weth) -> EIP20Contract:
+    contract = EIP20Contract(eth_client, weth.address)
+    return contract
+
+
+@pytest.fixture(scope="module")
 def pool_dai_weth(uni: UniswapV3, dai: Token, weth: Token):
     return uni.get_pool(dai.address, weth.address, fee=500)
