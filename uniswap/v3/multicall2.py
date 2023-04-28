@@ -24,21 +24,47 @@ class Call:
 
 
 class Multicall2(BaseContract):
+    """
+    Multicall2 contract wrapper.
+    Please refer official documentation (no real documentation):
+    https://docs.uniswap.org/contracts/v3/reference/deployments
+    Refer to source code:
+    https://etherscan.io/address/0x5ba1e12693dc8f9c48aad8770482f4739beed696#code
+    """
+
     def __init__(
         self,
         client: EtherClient,
-        w3: Web3,
         address: ChecksumAddress,
         abi_path: str = "../utils/abis/multicall2.abi.json",
     ):
-        super().__init__(w3, address, abi_path)
+        """
+        Parameters
+        ----------
+        client : EtherClient
+            EtherClient Client
+        address : ChecksumAddress
+            Address of the Multicall2
+        abi_path : str
+            [Optional] Path to json with ABI of the ERC20 token contract. By default is
+            `../utils/abis/multicall2.abi.json`
+        """
+        super().__init__(client.w3, address, abi_path)
         self.client = client
-        self._data = None
-
-    def _get_data(self):
-        raise NotImplementedError
 
     def aggregate_and_call(self, functions: List[ContractFunction]) -> List[Call]:
+        """
+        Run multiple smart contract call at once
+
+        Parameters
+        ----------
+        functions: List[web3.contract.contract.ContractFunction]
+            A list of contract call with input params.
+
+        Returns
+        -------
+        List[Call]
+        """
         calls: List[Call] = [Call(func_call=func) for func in functions]
         for func_call, call in zip(calls, functions):
             func_call.outputs = call.abi["outputs"]  # to trough exception

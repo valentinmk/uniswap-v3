@@ -78,6 +78,13 @@ class NftPositionUriData:
     description: str
     image: str
 
+    def __repr__(self):
+        # generate very noisy output
+        # for full content use implicitly __str__ method
+        return (
+            f"{self.__class__.__name__}(name={self.name}," "description=..., image=...)"
+        )
+
 
 @dataclass
 class NftPositionRaw:

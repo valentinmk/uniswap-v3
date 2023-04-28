@@ -74,7 +74,18 @@ class NonfungiblePositionManager(BaseContract):
             address = self.client.address
         return self.functions.tokenOfOwnerByIndex(address, index).call()
 
-    def _fetch_token_uri(self, token_id: int) -> NftPositionRaw:
+    def _fetch_token_uri(self, token_id: int) -> NftPositionUriData:
+        """Run the tokenURI function.
+
+        Parameters
+        ----------
+        token_id : int
+            Id of the nft position.
+
+        Returns
+        -------
+        NftPositionUriData
+        """
         data = decode_nft_URI(self.functions.tokenURI(token_id).call())
         return NftPositionUriData(
             name=data.get("name"),
@@ -97,6 +108,17 @@ class NonfungiblePositionManager(BaseContract):
             tokensOwed0,
             tokensOwed1,
         ) = self.functions.positions(token_id).call()
+        """Run the positions function.
+
+        Parameters
+        ----------
+        token_id : int
+            Id of the nft position.
+
+        Returns
+        -------
+        NftPositionRaw - token information with raw data from protocol
+        """
         return NftPositionRaw(
             token_id=token_id,
             nonce=nonce,
@@ -111,7 +133,7 @@ class NonfungiblePositionManager(BaseContract):
             feeGrowthInside1LastX128=feeGrowthInside1LastX128,
             tokensOwed0=tokensOwed0,
             tokensOwed1=tokensOwed1,
-            token_URI_data=None,
+            token_URI_data=self._fetch_token_uri(token_id=token_id),
         )
 
     def _get_position(
@@ -179,56 +201,6 @@ class NonfungiblePositionManager(BaseContract):
             return self.w3.eth.wait_for_transaction_receipt(tx_hash)
         return tx_hash
 
-    def _mint(
-        self,
-        token0: ChecksumAddress,
-        token1: ChecksumAddress,
-        fee: int,
-        tick_lower: int,
-        tick_upper: int,
-        amount0: int,
-        amount1: int,
-        amount0_min: int,
-        amount1_min: int,
-        recipient: ChecksumAddress = None,
-        deadline: int = 2**64,
-        wait: bool = False,
-    ) -> HexBytes | TxReceipt:
-        """Mint
-
-        For mint params refer: https://github.com/Uniswap/v3-periphery/blob/main/contracts/interfaces/INonfungiblePositionManager.sol#L79
-        """  # noqa
-        function_call = self.functions.mint(
-            (
-                token0,
-                token1,
-                fee,
-                tick_lower,
-                tick_upper,
-                amount0,
-                amount1,
-                amount0_min,
-                amount1_min,
-                recipient if recipient else self.client.address,
-                deadline,
-            )
-        )
-        transaction = function_call.build_transaction(
-            {
-                "chainId": self.w3.eth.chain_id,
-                "from": self.client.address,
-                "nonce": self.w3.eth.get_transaction_count(self.client.address),
-            }
-        )
-        # TODO need to split logic for transaction build
-        # and actual sending to blockchain
-        # Sending to blockchain must be a part of eth_client
-
-        signed_tx = self.sign_tx(transaction)
-        # return signed_tx
-        tx_hash = self.send_tx(signed_tx, wait=wait)
-        return tx_hash
-
     def _get_mint_tx(
         self,
         token0: ChecksumAddress,
@@ -242,7 +214,6 @@ class NonfungiblePositionManager(BaseContract):
         amount1_min: int,
         recipient: ChecksumAddress = None,
         deadline: int = 2**64,
-        wait: bool = False,
     ) -> TxParams:
         """Create Mint transaction
 
@@ -271,43 +242,6 @@ class NonfungiblePositionManager(BaseContract):
             }
         )
         return transaction
-
-    def _increase_liquidity(
-        self,
-        token_id: int,
-        amount0: int,
-        amount1: int,
-        amount0_min: int,
-        amount1_min: int,
-        deadline: int = 2**64,
-        wait=False,
-    ) -> HexBytes | TxReceipt:
-        """Increase liquidity
-
-        For Increase liquidity params refer: https://github.com/Uniswap/v3-periphery/blob/main/contracts/interfaces/INonfungiblePositionManager.sol#L111
-        """  # noqa
-        function_call = self.functions.increaseLiquidity(
-            (
-                token_id,
-                amount0,
-                amount1,
-                amount0_min,
-                amount1_min,
-                deadline,
-            )
-        )
-        transaction = function_call.build_transaction(
-            {
-                "chainId": self.w3.eth.chain_id,
-                "from": self.client.address,
-                "nonce": self.w3.eth.get_transaction_count(self.client.address),
-            }
-        )
-        # sign transaction
-        signed_tx = self.sign_tx(transaction)
-        # send signed_tx
-        tx_hash = self.send_tx(signed_tx, wait=wait)
-        return tx_hash
 
     def _get_increase_liquidity_tx(
         self,
@@ -342,47 +276,6 @@ class NonfungiblePositionManager(BaseContract):
         )
         return transaction
 
-    def _decrease_liquidity(
-        self,
-        token_id: int,
-        liquidity: int,
-        amount0_min: int,
-        amount1_min: int,
-        deadline: int = 2**64,
-        wait=False,
-    ) -> HexBytes | TxReceipt:
-        """Decrease liquidity
-
-        For Decrease liquidity params refer: https://github.com/Uniswap/v3-periphery/blob/main/contracts/interfaces/INonfungiblePositionManager.sol#L139
-        """  # noqa
-        function_call = self.functions.decreaseLiquidity(
-            (
-                token_id,
-                liquidity,
-                amount0_min,
-                amount1_min,
-                deadline,
-            )
-        )
-        transaction = function_call.build_transaction(
-            {
-                "chainId": self.w3.eth.chain_id,
-                "from": self.client.address,
-                "nonce": self.w3.eth.get_transaction_count(self.client.address),
-            }
-        )
-        private_key = self.w3.eth.account.decrypt(
-            self.client._keyfile_json, self.client._wallet_pass
-        )
-        signed_tx = self.client.w3.eth.account.sign_transaction(
-            transaction, private_key
-        )
-        # return signed_tx
-        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-        if wait:
-            return self.w3.eth.wait_for_transaction_receipt(tx_hash)
-        return tx_hash
-
     def _get_decrease_liquidity_tx(
         self,
         token_id: int,
@@ -413,45 +306,6 @@ class NonfungiblePositionManager(BaseContract):
             }
         )
         return transaction
-
-    def _collect(
-        self,
-        token_id: int,
-        recipient: ChecksumAddress = None,
-        amount0_max: int = MAX_UINT_128,
-        amount1_max: int = MAX_UINT_128,
-        wait=False,
-    ) -> HexBytes | TxReceipt:
-        """Collect
-
-        For Collect params refer: https://github.com/Uniswap/v3-periphery/blob/main/contracts/interfaces/INonfungiblePositionManager.sol#L160
-        """  # noqa
-        function_call = self.functions.collect(
-            (
-                token_id,
-                recipient if recipient else self.client.address,
-                amount0_max,
-                amount1_max,
-            )
-        )
-        transaction = function_call.build_transaction(
-            {
-                "chainId": self.w3.eth.chain_id,
-                "from": self.client.address,
-                "nonce": self.w3.eth.get_transaction_count(self.client.address),
-            }
-        )
-        private_key = self.w3.eth.account.decrypt(
-            self.client._keyfile_json, self.client._wallet_pass
-        )
-        signed_tx = self.client.w3.eth.account.sign_transaction(
-            transaction, private_key
-        )
-        # return signed_tx
-        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-        if wait:
-            return self.w3.eth.wait_for_transaction_receipt(tx_hash)
-        return tx_hash
 
     def _get_collect_tx(
         self,

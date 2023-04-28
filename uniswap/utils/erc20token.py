@@ -9,7 +9,6 @@ from ..v3.base import BaseContract
 from ..v3.models import Token
 
 
-@lru_cache
 class EIP20Contract(BaseContract):
     """
     ERC20 contract wrapper.
@@ -23,10 +22,11 @@ class EIP20Contract(BaseContract):
     address : ChecksumAddress
         Address of the ERC20 token smart contract
     abi_path : str
-        Path to json with ABI of the ERC20 token contract. By default is
+        [Optional] Path to json with ABI of the ERC20 token contract. By default is
         `../utils/abis/eip20.abi.json`
     """
 
+    @lru_cache
     def __init__(
         self,
         client: EtherClient,

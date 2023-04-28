@@ -1,180 +1,156 @@
-import os
+import pytest
+from web3.exceptions import ContractLogicError
 
-from uniswap.EtherClient import web3_client
-from uniswap.utils.consts import ERC20_TOKENS, GOERLI
-from uniswap.utils.erc20token import EIP20Contract
 from uniswap.v3.main import UniswapV3
-from web3 import Web3
+from uniswap.v3.models import Token
 
 
-# from uniswap.utils.erc20token_consts import (
-#     ROPSTEN_USDC,
-#     ROPSTEN_WETH,
-# )
-def test_draft():
-    # TODO
-    # Work in progress. It's a mess for now.
-    # provide complete integration and unit tests.
-    MY_ADDRESS = Web3.to_checksum_address("0x997d4c6A7cA5d524babDf1b205351f6FB623b5E7")
-
-    ETH_HTTP_URL = os.environ.get("ETH_PROVIDER_URL")
-    ETH_WALLET_PASS = os.environ.get("ETH_WALLET_PASS")
-    ETH_WALLET_JSON_PATH = os.environ.get("ETH_WALLET_JSON_PATH")
-    with open(ETH_WALLET_JSON_PATH) as keyfile:
-        ETH_WALLET_JSON = keyfile.read()
-    eth_client = web3_client.EtherClient(
-        http_url=ETH_HTTP_URL,
-        my_address=MY_ADDRESS,
-        my_wallet_pass=ETH_WALLET_PASS,
-        my_keyfile_json=ETH_WALLET_JSON,
-    )
-    print(eth_client.w3.eth.block_number)
-    uni = UniswapV3(eth_client)
-
-    usdc = EIP20Contract(eth_client, eth_client.w3, ERC20_TOKENS[GOERLI]["USDC"])
-    weth = EIP20Contract(eth_client, eth_client.w3, ERC20_TOKENS[GOERLI]["WETH"])
-    print(usdc)
-    print(usdc.data)
-    # print(uni.swap_router_02.address)
-    # print(usdc.allowance(uni.swap_router_02.address))
-
-    print(uni.nft_position_manager.address)
-    print(uni.nft_position_manager.get_functions())
-    print(uni.nft_position_manager._fetch_balance_of())
-    print(uni.nft_position_manager._fetch_token_owner_by_index(0))
-    # 21794
-    _token_uri = uni.nft_position_manager._fetch_token_uri(21794)
-    print(_token_uri.name)
-    print(_token_uri.description)
-    # 21794
-    _position_raw = uni.nft_position_manager._fetch_position_info(21794)
-    print(_position_raw)
-    pool = uni.get_pool(_position_raw.token0, _position_raw.token1, _position_raw.fee)
-    print("*" * 100)
-    print(pool.get_functions())
-    print(pool.data)
-    position = uni.nft_position_manager._get_position(
-        token_id=21794, position_raw=_position_raw, pool=pool
-    )
-    print(
-        position.token0,
-        position.token1,
-        position.amount0HR,
-        position.amount1HR,
-        position.fee,
-        position.unclaimedfeesamount0HR,
-        position.unclaimedfeesamount1HR,
-    )
-    print(position.raw)
-
-    print("-" * 100)
-    print(
-        uni.nft_position_manager.contract.decode_function_input(
-            "0x8831645600000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f000000000000000000000000c778417e063141139fce010982780140aa0cd5ab00000000000000000000000000000000000000000000000000000000000001f40000000000000000000000000000000000000000000000000000000000032dac0000000000000000000000000000000000000000000000000000000000033d7e00000000000000000000000000000000000000000000000000000000009896800000000000000000000000000000000000000000000000000008f5f885cf03a3000000000000000000000000000000000000000000000000000000000062831f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000997d4c6a7ca5d524babdf1b205351f6fb623b5e7000000000000000000000000000000000000000000000000000000006332a8b8"  # noqa
-        )
-    )
-
-    print("Check allowance")
-    usdc_allowance_nft_manager = (
-        usdc.allowance(uni.nft_position_manager.address) / 10**usdc.data.decimals
-    )
-    weth_allowance_nft_manager = (
-        weth.allowance(uni.nft_position_manager.address) / 10**weth.data.decimals
-    )
-    print(f"USDC: {usdc_allowance_nft_manager:,.2f}")
-    print(f"WETH: {weth_allowance_nft_manager:,.8f}")
-    print("-" * 100)
-    # Example position
-
-    # 0x07865c6E87B9F70255377e024ace6630C1Eaa37F - WETH
-    # 0xc778417E063141139Fce010982780140Aa0cD5Ab - USDC
-    # 500 - fee
-    # 208300 - tickLower
-    # 212350 - tickUpper
-    # 10000000 - amount0
-    # 2522247559316387 - amount1
-    # 6456095 - amount0min
-    # 0 - amount1min
-    # 0x997d4c6A7cA5d524babDf1b205351f6FB623b5E7 - recepient
-    # 1664264376 - deadline
-    #
-    # Minting - OK
-    # print(
-    #     uni.nft_position_manager._mint(
-    #         token0="0x07865c6E87B9F70255377e024ace6630C1Eaa37F",
-    #         token1="0xc778417E063141139Fce010982780140Aa0cD5Ab",
-    #         fee=500,
-    #         tick_lower=208300,
-    #         tick_upper=212350,
-    #         amount0=10000000,
-    #         amount1=2522247559316387,
-    #         amount0_min=6456095,
-    #         amount1_min=0,
-    #         # recipient - by default my_address
-    #         # deadline - by default 2**64 - no limit
-    #         wait=True,  # wait - by default, false
-    #     )
-    # )
-
-    print("-" * 100)
-    multi = uni.nft_position_manager.contract.decode_function_input(
-        "0xac9650d8000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000c4219f5d1700000000000000000000000000000000000000000000000000000000000056af0000000000000000000000000000000000000000000000000000000000989680000000000000000000000000000000000000000000000000003110aca363392c0000000000000000000000000000000000000000000000000000000000949d57000000000000000000000000000000000000000000000000002fcc4b2e1fad260000000000000000000000000000000000000000000000000000000063382ff800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000412210e8a00000000000000000000000000000000000000000000000000000000"  # noqa
-    )
-    print(multi)
-    print(uni.nft_position_manager.contract.decode_function_input(multi[1]["data"][0]))
-
-    # Increase liqudity - OK
-    # 22191
-    # 1000000 - amount0
-    # 252224755931638 - amount1
-    # 645609 - amount0min
-    # 0 - amount1min
-    # by default - deadline
-    # print(
-    #     uni.nft_position_manager._increase_liquidity(
-    #         token_id=22191,
-    #         amount0=10000000,
-    #         amount1=13810607520430380,
-    #         amount0_min=6456095,
-    #         amount1_min=0,
-    #         # deadline - by default 2**64 - no limit
-    #         # wait=True,  # wait - by default, false
-    #     )
-    # )
-    print("-" * 100)
-    multi = uni.nft_position_manager.contract.decode_function_input(
-        # "0xac9650d80000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000160000000000000000000000000000000000000000000000000000000000000022000000000000000000000000000000000000000000000000000000000000002a000000000000000000000000000000000000000000000000000000000000000a40c49ccbe00000000000000000000000000000000000000000000000000000000000056af0000000000000000000000000000000000000000000000000000038653bc0ff30000000000000000000000000000000000000000000000000000000000729d030000000000000000000000000000000000000000000000000024654e588469130000000000000000000000000000000000000000000000000000000063385158000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000084fc6f786500000000000000000000000000000000000000000000000000000000000056af000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffff00000000000000000000000000000000ffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004449404b7c00000000000000000000000000000000000000000000000000247542f3f2d837000000000000000000000000997d4c6a7ca5d524babdf1b205351f6fb623b5e7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000064df2ab5bb00000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f000000000000000000000000000000000000000000000000000000000072cbd1000000000000000000000000997d4c6a7ca5d524babdf1b205351f6fb623b5e700000000000000000000000000000000000000000000000000000000"  # noqa
-        "0xac9650d8000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000000000000000a40c49ccbe000000000000000000000000000000000000000000000000000000000000542200000000000000000000000000000000000000000000000000001cb79a3ede3a0000000000000000000000000000000000000000000000000000000002f7960500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000063385308000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000084fc6f78650000000000000000000000000000000000000000000000000000000000005422000000000000000000000000997d4c6a7ca5d524babdf1b205351f6fb623b5e700000000000000000000000000000000ffffffffffffffffffffffffffffffff00000000000000000000000000000000ffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000"  # noqa
-    )
-    print(multi)
-    [
-        print(uni.nft_position_manager.contract.decode_function_input(i))
-        for i in multi[1]["data"]
+@pytest.mark.release
+@pytest.mark.devel
+def test_test(uni: UniswapV3):
+    npm_address = uni.nft_position_manager.address
+    assert npm_address == "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
+    function_list = [
+        "burn",
+        "collect",
+        "decreaseLiquidity",
+        "increaseLiquidity",
+        "mint",
     ]
-    # print(uni.nft_position_manager.contract.decode_function_input(multi[1]["data"][0]))
-    # Decrease liqudity
-    # 22191
-    # 1000000 - amount0_min
-    # 252224755931638 - amount1_min
-    # by default - deadline
-    # print(
-    #     uni.nft_position_manager._decrease_liquidity(
-    #         token_id=22191,
-    #         liquidity=3875465334771,
-    #         amount0_min=7511299,
-    #         amount1_min=10244486328510739,
-    #         # deadline - by default 2**64 - no limit
-    #         # wait=True,  # wait - by default, false
-    #     ).hex()
-    # )
+    npm_functions = uni.nft_position_manager.get_functions()
+    assert all([i in npm_functions for i in function_list])
+    n_of_nft_possiotions = uni.nft_position_manager._fetch_balance_of()
+    assert type(n_of_nft_possiotions) is int and n_of_nft_possiotions >= 0
 
-    # Collect - OK
-    # 22191
-    # by default MY_ADDRESS - def
-    # by deafault - amount0_max
-    # by deafault - amount1_max
-    # print(
-    #     uni.nft_position_manager._collect(
-    #         token_id=22191,
-    #     ).hex()
-    # )
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_position_get(uni: UniswapV3):
+    if uni.nft_position_manager._fetch_balance_of() > 0:
+        first_nft_id = uni.nft_position_manager._fetch_token_owner_by_index(0)
+        assert first_nft_id > 0 and type(first_nft_id) is int
+    else:
+        pass
+    with pytest.raises(ContractLogicError) as exc:
+        first_nft_id = uni.nft_position_manager._fetch_token_owner_by_index(
+            index=0, address="0x0000000000000000000000000000000000000000"
+        )
+    assert str(exc.value) == "execution reverted: EnumerableSet: index out of bounds"
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_position_token_uri(uni: UniswapV3):
+    token_uri_info = uni.nft_position_manager._fetch_token_uri(21794)
+    assert token_uri_info.name.startswith("Uniswap")
+    assert token_uri_info.description
+    assert token_uri_info.image
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_position_info(uni: UniswapV3):
+    token_raw_info = uni.nft_position_manager._fetch_position_info(21794)
+    assert token_raw_info.token_id
+    assert token_raw_info.token0
+    assert token_raw_info.token1
+    assert token_raw_info.fee
+    assert token_raw_info.tickLower
+    assert token_raw_info.tickUpper
+    assert token_raw_info.liquidity
+    assert token_raw_info.token_URI_data
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_position__get_position(uni: UniswapV3):
+    token_raw_info = uni.nft_position_manager._fetch_position_info(21794)
+    pool = uni.get_pool(
+        token_raw_info.token0, token_raw_info.token1, token_raw_info.fee
+    )
+    position = uni.nft_position_manager._get_position(
+        token_raw_info.token_id, position_raw=token_raw_info, pool=pool
+    )
+    assert position.amount0HR
+    assert position.amount1HR
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_position__get_mint_tx(uni: UniswapV3, weth: Token, dai: Token):
+    # due to price changing it is not possible to provide some
+    # some fixed data to test mint function
+    # so i am using uni.nft_position_manager.create_position to generate
+    # test data
+    pool = uni.get_pool(
+        token0=dai.address,
+        token1=weth.address,
+        fee=500,
+    )
+    uc_position = uni.nft_position_manager.create_position(
+        pool_data=pool.data,
+        current_price=pool.data.token0Price,
+        lower_price=pool.data.token0Price * 0.9,
+        upper_price=pool.data.token0Price * 1.9,
+        amount0=100,
+    )
+    tx_params = uni.nft_position_manager._get_mint_tx(
+        token0=dai.address,
+        token1=weth.address,
+        fee=500,
+        tick_lower=pool.state.tick - pool.data.immutables.tickSpacing,
+        tick_upper=pool.state.tick + pool.data.immutables.tickSpacing,
+        amount0=uc_position.adj_amount0,
+        amount1=uc_position.adj_amount1,
+        amount0_min=0,
+        amount1_min=0,
+    )
+    assert tx_params.get("value") == 0
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_position__get_increase_tx(uni: UniswapV3, weth: Token, uni_token: Token):
+    # using pre-created liquidity position
+    # with a lower/upper price pre-setted to be "in range"
+    # could fail due to create_position currently not handle
+    # a situation of one-token liquidity calculation
+    pool = uni.get_pool(
+        token0=uni_token.address,
+        token1=weth.address,
+        fee=500,
+    )
+    uc_position = uni.nft_position_manager.create_position(
+        pool_data=pool.data,
+        current_price=pool.data.token0Price,
+        lower_price=pool.data.token0Price * 0.9,
+        upper_price=pool.data.token0Price * 1.9,
+        amount0=0.01,
+    )
+    tx_params = uni.nft_position_manager._get_increase_liquidity_tx(
+        token_id=65590,
+        amount0=uc_position.adj_amount0,
+        amount1=uc_position.adj_amount1,
+        amount0_min=0,
+        amount1_min=0,
+    )
+    assert tx_params.get("value") == 0
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_position__get_decrease_tx(uni: UniswapV3, weth: Token, uni_token: Token):
+    tx_params = uni.nft_position_manager._get_decrease_liquidity_tx(
+        token_id=65590,
+        liquidity=10,
+        amount0_min=0,
+        amount1_min=0,
+    )
+    assert tx_params.get("value") == 0
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_position__get_collect_tx(uni: UniswapV3, weth: Token, uni_token: Token):
+    tx_params = uni.nft_position_manager._get_collect_tx(token_id=65590)
+    assert tx_params.get("value") == 0

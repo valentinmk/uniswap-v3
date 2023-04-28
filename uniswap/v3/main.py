@@ -89,7 +89,6 @@ class UniswapV3:
         if self._multicall2 is None:
             self._multicall2 = Multicall2(
                 self.client,
-                self.w3,
                 CONTRACT_ADDRESSES[self.w3.eth.chain_id]["multicall2"],
             )
         return self._multicall2

@@ -8,7 +8,11 @@ from uniswap.EtherClient import web3_client
 from uniswap.v3.main import UniswapV3
 from uniswap.v3.models import Token
 from uniswap.utils.erc20token import EIP20Contract
-from uniswap.utils.erc20token_consts import GOERLI_DAI_TOKEN, GOERLI_WETH_TOKEN
+from uniswap.utils.erc20token_consts import (
+    GOERLI_DAI_TOKEN,
+    GOERLI_WETH_TOKEN,
+    GOERLI_UNI_TOKEN,
+)
 
 
 @pytest.fixture(scope="module")
@@ -42,6 +46,11 @@ def weth() -> Token:
 @pytest.fixture(scope="module")
 def dai() -> Token:
     return GOERLI_DAI_TOKEN
+
+
+@pytest.fixture(scope="module")
+def uni_token() -> Token:
+    return GOERLI_UNI_TOKEN
 
 
 @pytest.fixture(scope="module")
