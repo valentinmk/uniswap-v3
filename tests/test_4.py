@@ -2,12 +2,12 @@ import pytest
 from web3.exceptions import ContractLogicError
 
 from uniswap.v3.main import UniswapV3
-from uniswap.v3.models import Token
+from uniswap.v3.pool import Pool
 
 
 @pytest.mark.release
 @pytest.mark.devel
-def test_test(uni: UniswapV3):
+def test_nft_position_manager_invoke(uni: UniswapV3):
     npm_address = uni.nft_position_manager.address
     assert npm_address == "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
     function_list = [
@@ -19,8 +19,8 @@ def test_test(uni: UniswapV3):
     ]
     npm_functions = uni.nft_position_manager.get_functions()
     assert all([i in npm_functions for i in function_list])
-    n_of_nft_possiotions = uni.nft_position_manager._fetch_balance_of()
-    assert type(n_of_nft_possiotions) is int and n_of_nft_possiotions >= 0
+    n_of_nft_positions = uni.nft_position_manager._fetch_balance_of()
+    assert type(n_of_nft_positions) is int and n_of_nft_positions >= 0
 
 
 @pytest.mark.release
@@ -77,29 +77,25 @@ def test_position__get_position(uni: UniswapV3):
 
 @pytest.mark.release
 @pytest.mark.devel
-def test_position__get_mint_tx(uni: UniswapV3, weth: Token, dai: Token):
+def test_position__get_mint_tx(uni: UniswapV3, pool_dai_weth: Pool):
     # due to price changing it is not possible to provide some
     # some fixed data to test mint function
     # so i am using uni.nft_position_manager.create_position to generate
     # test data
-    pool = uni.get_pool(
-        token0=dai.address,
-        token1=weth.address,
-        fee=500,
-    )
+    pool = pool_dai_weth
     uc_position = uni.nft_position_manager.create_position(
         pool_data=pool.data,
         current_price=pool.data.token0Price,
         lower_price=pool.data.token0Price * 0.9,
-        upper_price=pool.data.token0Price * 1.9,
+        upper_price=pool.data.token0Price * 1.1,
         amount0=100,
     )
     tx_params = uni.nft_position_manager._get_mint_tx(
-        token0=dai.address,
-        token1=weth.address,
+        token0=pool.data.token0.address,
+        token1=pool.data.token1.address,
         fee=500,
-        tick_lower=pool.state.tick - pool.data.immutables.tickSpacing,
-        tick_upper=pool.state.tick + pool.data.immutables.tickSpacing,
+        tick_lower=uc_position.raw.lower_tick,
+        tick_upper=uc_position.raw.upper_tick,
         amount0=uc_position.adj_amount0,
         amount1=uc_position.adj_amount1,
         amount0_min=0,
@@ -110,21 +106,17 @@ def test_position__get_mint_tx(uni: UniswapV3, weth: Token, dai: Token):
 
 @pytest.mark.release
 @pytest.mark.devel
-def test_position__get_increase_tx(uni: UniswapV3, weth: Token, uni_token: Token):
+def test_position__get_increase_tx(uni: UniswapV3, pool_uni_weth: Pool):
     # using pre-created liquidity position
-    # with a lower/upper price pre-setted to be "in range"
+    # with a lower/upper price preset to be "in range"
     # could fail due to create_position currently not handle
     # a situation of one-token liquidity calculation
-    pool = uni.get_pool(
-        token0=uni_token.address,
-        token1=weth.address,
-        fee=500,
-    )
+    pool = pool_uni_weth
     uc_position = uni.nft_position_manager.create_position(
         pool_data=pool.data,
         current_price=pool.data.token0Price,
         lower_price=pool.data.token0Price * 0.9,
-        upper_price=pool.data.token0Price * 1.9,
+        upper_price=pool.data.token0Price * 1.1,
         amount0=0.01,
     )
     tx_params = uni.nft_position_manager._get_increase_liquidity_tx(
@@ -139,7 +131,7 @@ def test_position__get_increase_tx(uni: UniswapV3, weth: Token, uni_token: Token
 
 @pytest.mark.release
 @pytest.mark.devel
-def test_position__get_decrease_tx(uni: UniswapV3, weth: Token, uni_token: Token):
+def test_position__get_decrease_tx(uni: UniswapV3):
     tx_params = uni.nft_position_manager._get_decrease_liquidity_tx(
         token_id=65590,
         liquidity=10,
@@ -151,6 +143,6 @@ def test_position__get_decrease_tx(uni: UniswapV3, weth: Token, uni_token: Token
 
 @pytest.mark.release
 @pytest.mark.devel
-def test_position__get_collect_tx(uni: UniswapV3, weth: Token, uni_token: Token):
+def test_position__get_collect_tx(uni: UniswapV3):
     tx_params = uni.nft_position_manager._get_collect_tx(token_id=65590)
     assert tx_params.get("value") == 0
