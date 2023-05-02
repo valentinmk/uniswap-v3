@@ -41,7 +41,7 @@ An unofficial python client for Uniswap V3, built for human beings.
 1. version 0.0.5 - library design - client to BaseContract
 
 - [ ] send_transaction to BaseContract
-- [ ] multicall2 to lower RPS to provider
+- [ ] multicall2 to decrease RPS of provider
 - [ ] multiple providers
 
 1. version 0.0.6 - Position NFT for humans
@@ -55,7 +55,7 @@ An unofficial python client for Uniswap V3, built for human beings.
 1. version 0.0.7 - PYPI publishing and docs
 
 1. version 0.0.8 - finish with tests
-1. version 0.0.9 - smart-routing / analog to AlphaRouter
+1. version 0.0.9 - smart-routing / similar to AlphaRouter
 
 - [ ] "Integrating the Auto Router"
 

@@ -1,5 +1,5 @@
 import pytest
-from pprint import pp
+from .helpers.models import LiquidityPosition
 
 from uniswap.v3.main import UniswapV3
 from uniswap.v3.pool import Pool
@@ -14,43 +14,35 @@ from uniswap.v3.math import (
 )
 
 
-def test_draft(uni):
-    pass
-
-
+@pytest.mark.release
+@pytest.mark.devel
 def test_print_mint_sc_call(uni: UniswapV3):
     hex_data = "0x8831645600000000000000000000000011fe4b6ae13d2a6055c8d9cf65c55bac32b5d844000000000000000000000000b4fbf271143f4fbf7b91a5ded31805e42b2208d600000000000000000000000000000000000000000000000000000000000001f4fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe9350fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe93a00000000000000000000000000000000000000000000000008ac7230489e7fc250000000000000000000000000000000000000000000000000002834e49228be700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000997d4c6a7ca5d524babdf1b205351f6fb623b5e700000000000000000000000000000000000000000000000000000000642a8f9c"  # noqa
-    # call_data = uni.nft_position_manager.decode_multicall(hex_data)
     call_data = uni.nft_position_manager.contract.decode_function_input(hex_data)
-    pp(call_data)
+    assert call_data[0].fn_name == "mint"
 
 
-@pytest.mark.skip
-def test_get_positions(uni: UniswapV3, weth: Token, dai: Token):
-    pool_weth_dai = uni.get_pool(weth.address, dai.address, fee=500)
-    pp(pool_weth_dai.data)
-
-
-# tokens with same decimals
-# Test with predefined data
-# Example pool state
-current_price_x96 = 745530830026153871741189246
-current_tick = -93325
-# Example position input params
-current_price = 0.0000885466
-# lower_price = 0.00009958175662218681  # 1 / 10042
-# upper_price = 0.00009998000399920016  # 1 / 10002
-lower_price = 0.000088233
-upper_price = 0.000088941
-lower_tick = -93360
-upper_tick = -93280
-amount0 = 9999999999999999013
-amount1 = 707322211109863
-amount0HR = 10
-amount1HR = 0.000707322
+test_position = LiquidityPosition(
+    # Pair of Tokens with same decimals
+    # Test with predefined data
+    # Example pool state
+    current_price_x96=745530830026153871741189246,
+    current_tick=-93325,
+    # Example position input params
+    current_price=0.0000885466,
+    lower_price=0.000088233,
+    upper_price=0.000088941,
+    lower_tick=-93360,
+    upper_tick=-93280,
+    amount0=9999999999999999013,
+    amount1=707322211109863,
+    liquidity=0,
+    amount0HR=10,
+    amount1HR=0.000707322,
+)
 # test pool data (it constantly changing in the testnet)
 # for testing need we are fixed some state
-pool_data = PoolData(
+test_pool_data = PoolData(
     immutables=PoolImmutablesRaw(
         factory="0x1F98431c8aD98523631AE4a59f267346ea31F984",
         token0="0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844",
@@ -92,69 +84,94 @@ pool_data = PoolData(
     token1Price=11293.48429613451,
 )
 
+test_data = [(test_position, test_pool_data)]
 
-def test_synth_math_from_sqrtPriceX96():
-    pp(from_sqrtPriceX96(current_price_x96))
-    assert current_price == round(from_sqrtPriceX96(current_price_x96), 10)
-    assert current_price != from_sqrtPriceX96(get_sqrt_ratio_at_tick(current_tick))
-    assert current_price_x96 != get_sqrt_ratio_at_tick(current_tick)
+
+@pytest.mark.release
+@pytest.mark.devel
+@pytest.mark.parametrize("position, pool", test_data)
+def test_synth_math_from_sqrtPriceX96(position: LiquidityPosition, pool: PoolData):
+    assert position.current_price == round(
+        from_sqrtPriceX96(position.current_price_x96), 10
+    )
+    assert test_position.current_price != from_sqrtPriceX96(
+        get_sqrt_ratio_at_tick(position.current_tick)
+    )
+    assert position.current_price_x96 != get_sqrt_ratio_at_tick(position.current_tick)
     assert 5000 == from_sqrtPriceX96(5602277097478614198912276234240)
 
 
-def test_synth_math_amounts_from_price():
+@pytest.mark.release
+@pytest.mark.devel
+@pytest.mark.parametrize("position, pool", test_data)
+def test_synth_math_amounts_from_price(position: LiquidityPosition, pool: PoolData):
     amount = get_amount0_from_price_range(
-        p=current_price, pa=lower_price, pb=upper_price, amount1=amount1HR
+        p=test_position.current_price,
+        pa=test_position.lower_price,
+        pb=test_position.upper_price,
+        amount1=test_position.amount1HR,
     )
-    assert round(amount, 0) == amount0HR
+    assert round(amount, 0) == test_position.amount0HR
     amount = get_amount1_from_price_range(
-        p=current_price, pa=lower_price, pb=upper_price, amount0=amount0HR
+        p=test_position.current_price,
+        pa=test_position.lower_price,
+        pb=test_position.upper_price,
+        amount0=test_position.amount0HR,
     )
-    assert round(amount, 4) == round(amount1HR, 4)
+    assert round(amount, 4) == round(test_position.amount1HR, 4)
 
 
-def test_synth_math_amounts_from_tick():
+@pytest.mark.release
+@pytest.mark.devel
+@pytest.mark.parametrize("position, pool", test_data)
+def test_synth_math_amounts_from_tick(position: LiquidityPosition, pool: PoolData):
     amount = get_amount0_from_tick_range(
-        p=current_price_x96,
-        pa=get_sqrt_ratio_at_tick(lower_tick),
-        pb=get_sqrt_ratio_at_tick(upper_tick),
-        amount1=amount1,
+        p=position.current_price_x96,
+        pa=get_sqrt_ratio_at_tick(position.lower_tick),
+        pb=get_sqrt_ratio_at_tick(position.upper_tick),
+        amount1=position.amount1,
     )
-    assert round(amount / amount0, 18) == 1
+    assert round(amount / position.amount0, 18) == 1
     amount = get_amount1_from_tick_range(
-        p=current_price_x96,
-        pa=get_sqrt_ratio_at_tick(lower_tick),
-        pb=get_sqrt_ratio_at_tick(upper_tick),
-        amount0=amount0,
+        p=position.current_price_x96,
+        pa=get_sqrt_ratio_at_tick(position.lower_tick),
+        pb=get_sqrt_ratio_at_tick(position.upper_tick),
+        amount0=position.amount0,
     )
-    assert round(amount / amount1, 18) == 1
+    assert round(amount / position.amount1, 18) == 1
 
 
-def test_synth__create_position_ticks(uni: UniswapV3):
+@pytest.mark.release
+@pytest.mark.devel
+@pytest.mark.parametrize("position, pool", test_data)
+def test_synth__create_position_ticks(
+    uni: UniswapV3, position: LiquidityPosition, pool: PoolData
+):
     unchecked_pos_raw = uni.nft_position_manager._create_position(
-        pool_data=pool_data,
-        current_tick=current_tick,
-        current_price_x96=current_price_x96,
-        lower_tick=lower_tick,
-        upper_tick=upper_tick,
-        amount0=amount0,
+        pool_data=pool,
+        current_tick=position.current_tick,
+        current_price_x96=position.current_price_x96,
+        lower_tick=position.lower_tick,
+        upper_tick=position.upper_tick,
+        amount0=position.amount0,
     )
-    assert round((unchecked_pos_raw.amount1 / amount1), 18) == 1
+    assert round((unchecked_pos_raw.amount1 / position.amount1), 18) == 1
     unchecked_pos_raw = uni.nft_position_manager._create_position(
-        pool_data=pool_data,
-        current_tick=current_tick,
-        current_price_x96=current_price_x96,
-        lower_tick=lower_tick,
-        upper_tick=upper_tick,
-        amount1=amount1,
+        pool_data=pool,
+        current_tick=position.current_tick,
+        current_price_x96=position.current_price_x96,
+        lower_tick=position.lower_tick,
+        upper_tick=position.upper_tick,
+        amount1=position.amount1,
     )
-    assert round((unchecked_pos_raw.amount0 / amount0), 18) == 1
+    assert round((unchecked_pos_raw.amount0 / position.amount0), 18) == 1
     try:
         unchecked_pos_raw = uni.nft_position_manager._create_position(
-            pool_data=pool_data,
-            current_tick=current_tick,
-            current_price_x96=current_price_x96,
-            lower_tick=lower_tick,
-            upper_tick=upper_tick,
+            pool_data=pool,
+            current_tick=position.current_tick,
+            current_price_x96=position.current_price_x96,
+            lower_tick=position.lower_tick,
+            upper_tick=position.upper_tick,
         )
     except ValueError:
         pass
@@ -162,63 +179,153 @@ def test_synth__create_position_ticks(uni: UniswapV3):
         raise AssertionError
 
 
-def test_synth_create_position(uni: UniswapV3):
+@pytest.mark.release
+@pytest.mark.devel
+@pytest.mark.parametrize("position, pool", test_data)
+def test_synth_create_position(
+    uni: UniswapV3, position: LiquidityPosition, pool: PoolData
+):
     unchecked_pos = uni.nft_position_manager.create_position(
-        pool_data=pool_data,
-        current_price=current_price,
-        lower_price=lower_price,
-        upper_price=upper_price,
-        amount0=amount0HR,
+        pool_data=pool,
+        current_price=position.current_price,
+        lower_price=position.lower_price,
+        upper_price=position.upper_price,
+        amount0=position.amount0HR,
     )
-    assert round(unchecked_pos.amount1HR / amount1HR, 2) == 1
-    pp(unchecked_pos)
+    assert round(unchecked_pos.amount1HR / position.amount1HR, 2) == 1
     unchecked_pos = uni.nft_position_manager.create_position(
-        pool_data=pool_data,
-        current_price=current_price,
-        lower_price=lower_price,
-        upper_price=upper_price,
-        amount1=amount1HR,
+        pool_data=pool,
+        current_price=position.current_price,
+        lower_price=position.lower_price,
+        upper_price=position.upper_price,
+        amount1=position.amount1HR,
     )
-    assert round(unchecked_pos.amount0HR / amount0HR, 2) == 1
+    assert round(unchecked_pos.amount0HR / position.amount0HR, 2) == 1
 
 
-@pytest.mark.skip
-def test_synth_mint(uni: UniswapV3):
+@pytest.mark.release
+@pytest.mark.devel
+def test_mint_get_tx(uni: UniswapV3, pool_dai_weth: Pool):
+    uc_position = uni.nft_position_manager.create_position(
+        pool_data=pool_dai_weth.data,
+        current_price=pool_dai_weth.data.token0Price,
+        lower_price=pool_dai_weth.data.token0Price * 0.9,
+        upper_price=pool_dai_weth.data.token0Price * 1.1,
+        amount0=100,
+    )
+
+    tx_params = uni.nft_position_manager._get_mint_tx(
+        token0=pool_dai_weth.data.token0.address,
+        token1=pool_dai_weth.data.token1.address,
+        fee=pool_dai_weth.data.immutables.fee,
+        tick_lower=uc_position.raw.lower_tick,
+        tick_upper=uc_position.raw.upper_tick,
+        amount0=uc_position.adj_amount0,
+        amount1=uc_position.adj_amount1,
+        amount0_min=0,
+        amount1_min=0,
+    )
+    assert tx_params.get("value") == 0
+    assert tx_params.get("data", None) is not None
+    decoded_params = uni.nft_position_manager.contract.decode_function_input(
+        tx_params.get("data")
+    )
+    assert decoded_params[1]["params"]["tickLower"] == uc_position.raw.lower_tick
+    assert decoded_params[1]["params"]["tickUpper"] == uc_position.raw.upper_tick
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_increase_liquidity_get_tx(uni: UniswapV3, pool_uni_weth: Pool):
+    uc_position = uni.nft_position_manager.create_position(
+        pool_data=pool_uni_weth.data,
+        current_price=pool_uni_weth.data.token0Price,
+        lower_price=pool_uni_weth.data.token0Price * 0.9,
+        upper_price=pool_uni_weth.data.token0Price * 1.1,
+        amount0=0.01,
+    )
+
+    tx_params = uni.nft_position_manager._get_increase_liquidity_tx(
+        token_id=65590,
+        amount0=uc_position.adj_amount0,
+        amount1=uc_position.adj_amount1,
+        amount0_min=0,
+        amount1_min=0,
+    )
+    assert tx_params.get("value") == 0
+    assert tx_params.get("data", None) is not None
+    decoded_params = uni.nft_position_manager.contract.decode_function_input(
+        tx_params.get("data")
+    )
+    assert decoded_params[1]["params"]["amount0Desired"] == uc_position.adj_amount0
+    assert decoded_params[1]["params"]["amount1Desired"] == uc_position.adj_amount1
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_decrease_liquidity_get_tx(uni: UniswapV3):
+    tx_params = uni.nft_position_manager._get_decrease_liquidity_tx(
+        token_id=65590,
+        liquidity=10,  # I took random number for testing purpose
+        # better to fetch the liquidity with get_position and operate real number
+        amount0_min=0,
+        amount1_min=0,
+    )
+    assert tx_params.get("data", None) is not None
+    decoded_params = uni.nft_position_manager.contract.decode_function_input(
+        tx_params.get("data")
+    )
+    assert decoded_params[1]["params"]["liquidity"] == 10
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_collect_get_tx(uni: UniswapV3):
+    tx_params = uni.nft_position_manager._get_collect_tx(
+        token_id=65590,
+    )
+    assert tx_params.get("data", None) is not None
+    decoded_params = uni.nft_position_manager.contract.decode_function_input(
+        tx_params.get("data")
+    )
+    assert decoded_params[1]["params"]["tokenId"] == 65590
+
+
+@pytest.mark.release
+@pytest.mark.devel
+def test_decrease_collect_get_tx(uni: UniswapV3):
+    tx_params = uni.nft_position_manager._get_decrease_collect_tx(
+        token_id=65590, liquidity=1, amount0_min=0, amount1_min=0
+    )
+    assert tx_params.get("data", None) is not None
+    decoded_params = uni.nft_position_manager.decode_multicall(tx_params.get("data"))
+    assert len(decoded_params) == 2
+    assert decoded_params[0][0].fn_name == "decreaseLiquidity"
+    assert decoded_params[1][0].fn_name == "collect"
+
+
+@pytest.mark.release
+def test_mint(uni: UniswapV3, pool_uni_weth: Pool):
     """
-    Run real transaction with liquidityy minting, but with
+    Run real transaction with liquidity minting, but with
     a dummy data from the `pool_data`
     """
-    unchecked_pos = uni.nft_position_manager.create_position(
-        pool_data=pool_data,
-        current_price=current_price,
-        lower_price=lower_price,
-        upper_price=upper_price,
-        amount0=amount0HR,
+    uc_position = uni.nft_position_manager.create_position(
+        pool_data=pool_uni_weth.data,
+        current_price=pool_uni_weth.data.token0Price,
+        lower_price=pool_uni_weth.data.token0Price * 0.9,
+        upper_price=pool_uni_weth.data.token0Price * 1.1,
+        amount0=0.01,
     )
-    transaction = uni.nft_position_manager.mint(unchecked_nft_position=unchecked_pos)
-    pp(transaction)
 
-
-@pytest.mark.skip
-def test_real_mint(uni: UniswapV3, pool_dai_weth: Pool):
-    """
-    Run real transaction with liquidityy minting, but with
-    a real data from Uniswap.
-    """
-    pool = pool_dai_weth
-    unchecked_pos = uni.nft_position_manager.create_position(
-        pool_data=pool.data,
-        current_price=pool.data.token0Price,
-        lower_price=pool.data.token0Price * 0.99,
-        upper_price=pool.data.token0Price * 1.01,
-        amount0=10,  # 10 DAI
+    tx_receipt = uni.nft_position_manager.mint(
+        unchecked_nft_position=uc_position, wait=True
     )
-    transaction = uni.nft_position_manager.mint(unchecked_nft_position=unchecked_pos)
-    pp(transaction)
+    print(tx_receipt)
 
 
-@pytest.mark.skip
-def test_real_increase_liquidity(uni: UniswapV3, pool_dai_weth: Pool):
+@pytest.mark.release
+def test_increase_liquidity(uni: UniswapV3, pool_uni_weth: Pool):
     """
     Run a real transaction with liquidity increase by 5 DAI,
     with a real data from Uniswap. It is unreal to increase liqudity
@@ -226,53 +333,42 @@ def test_real_increase_liquidity(uni: UniswapV3, pool_dai_weth: Pool):
     """
     # TODO: need to force update pool, if previously new position was minted
     # self._state = self._get_state()
-    pool = pool_dai_weth
-    pool._state = pool._get_state()
-    n_positions = uni.nft_position_manager._fetch_balance_of()
-    last_position_id = uni.nft_position_manager._fetch_token_owner_by_index(
-        n_positions - 1
-    )
-    last_position_raw = uni.nft_position_manager._fetch_position_info(last_position_id)
-    last_position = uni.nft_position_manager._get_position(
-        token_id=last_position_id, position_raw=last_position_raw, pool=pool
-    )
-    pp(last_position)
+
     unchecked_pos = uni.nft_position_manager.create_position(
-        pool_data=last_position.pool,  # TODO: pool or PoolData ???
-        current_price=last_position.pool.token0Price,
-        lower_price=last_position.lower_price,
-        upper_price=last_position.upper_price,
-        amount0=5,  # add 5 DAI liquidity
-        # amount1=0.000598268,
+        pool_data=pool_uni_weth.data,
+        current_price=pool_uni_weth.data.token0Price,
+        lower_price=pool_uni_weth.data.token0Price * 0.9,
+        upper_price=pool_uni_weth.data.token0Price * 1.1,
+        amount0=0.01,
     )
-    transaction = uni.nft_position_manager.increase_liquidity(
-        token_id=last_position.token_id, unchecked_nft_position=unchecked_pos
+    tx_receipt = uni.nft_position_manager.increase_liquidity(
+        token_id=65590, unchecked_nft_position=unchecked_pos, wait=True
     )
-    pp(transaction)
+    print(tx_receipt)
 
 
-@pytest.mark.skip
-def test_real_decrease_liquidity(uni: UniswapV3, pool_dai_weth: Pool):
-    pool = pool_dai_weth
-    token_id = 62532
-    transaction = uni.nft_position_manager.decrease_liquidity(
+@pytest.mark.release
+def test_decrease_liquidity(uni: UniswapV3, pool_uni_weth: Pool):
+    pool = pool_uni_weth
+    token_id = 65590
+    tx_receipt = uni.nft_position_manager.decrease_liquidity(
         token_id=token_id, pool=pool, percent=0.3
     )
-    pp(transaction)
+    print(tx_receipt)
 
 
-@pytest.mark.skip
-def test_real_collect(uni: UniswapV3):
+@pytest.mark.release
+def test_collect(uni: UniswapV3):
     token_id = 62537
-    transaction = uni.nft_position_manager.collect(token_id=token_id)
-    pp(transaction)
+    tx_receipt = uni.nft_position_manager.collect(token_id=token_id, wait=True)
+    print(tx_receipt)
 
 
-@pytest.mark.skip
-def test_real_decrease_collect(uni: UniswapV3, pool_dai_weth: Pool):
-    pool = pool_dai_weth
+@pytest.mark.release
+def test_decrease_collect(uni: UniswapV3, pool_uni_weth: Pool):
+    pool = pool_uni_weth
     token_id = 62537
-    transaction = uni.nft_position_manager.decrease_collect(
+    tx_receipt = uni.nft_position_manager.decrease_collect(
         token_id=token_id, pool=pool, percent=0.2
     )
-    pp(transaction)
+    print(tx_receipt)

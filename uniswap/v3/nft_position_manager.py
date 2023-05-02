@@ -251,7 +251,6 @@ class NonfungiblePositionManager(BaseContract):
         amount0_min: int,
         amount1_min: int,
         deadline: int = 2**64,
-        wait=False,
     ) -> TxParams:
         """Increase liquidity
 
@@ -283,7 +282,6 @@ class NonfungiblePositionManager(BaseContract):
         amount0_min: int,
         amount1_min: int,
         deadline: int = 2**64,
-        wait=False,
     ) -> TxParams:
         """Decrease liquidity
 
@@ -313,7 +311,6 @@ class NonfungiblePositionManager(BaseContract):
         recipient: ChecksumAddress = None,
         amount0_max: int = MAX_UINT_128,
         amount1_max: int = MAX_UINT_128,
-        wait=False,
     ) -> TxParams:
         """Collect
 
@@ -327,6 +324,47 @@ class NonfungiblePositionManager(BaseContract):
                 amount1_max,
             )
         )
+        transaction = function_call.build_transaction(
+            {
+                "chainId": self.w3.eth.chain_id,
+                "from": self.client.address,
+                "nonce": self.w3.eth.get_transaction_count(self.client.address),
+            }
+        )
+        return transaction
+
+    def _get_decrease_collect_tx(
+        self,
+        token_id: int,
+        liquidity: int,
+        amount0_min: int,
+        amount1_min: int,
+        recipient: ChecksumAddress = None,
+        deadline: int = 2**64,
+    ) -> TxParams:
+        """Collect
+
+        For Collect params refer: https://github.com/Uniswap/v3-periphery/blob/main/contracts/interfaces/INonfungiblePositionManager.sol#L160
+        """  # noqa
+        transaction_decrease = self._get_decrease_liquidity_tx(
+            token_id=token_id,
+            liquidity=liquidity,
+            amount0_min=amount0_min,
+            amount1_min=amount1_min,
+            deadline=deadline,
+        )
+
+        transaction_collect = self._get_collect_tx(
+            token_id=token_id,
+            recipient=recipient,
+            amount0_max=MAX_UINT_128,
+            amount1_max=MAX_UINT_128,
+        )
+        multicall_input = (
+            transaction_decrease["data"],
+            transaction_collect["data"],
+        )
+        function_call = self.functions.multicall(multicall_input)
         transaction = function_call.build_transaction(
             {
                 "chainId": self.w3.eth.chain_id,
@@ -614,7 +652,6 @@ class NonfungiblePositionManager(BaseContract):
             amount0_min=0,
             amount1_min=0,
             deadline=deadline,
-            wait=wait,
         )
         tx_hash = self.send_tx(self.sign_tx(transaction))
         return tx_hash
@@ -699,34 +736,13 @@ class NonfungiblePositionManager(BaseContract):
 
         liquidity = nft_position.raw.liquidity
         withdraw_liquidity = int(liquidity * percent)
-        transaction_decrease = self._get_decrease_liquidity_tx(
+        transaction = self._get_decrease_collect_tx(
             token_id=token_id,
             liquidity=withdraw_liquidity,
             amount0_min=0,
             amount1_min=0,
-            deadline=deadline,
-            wait=wait,
-        )
-
-        transaction_collect = self._get_collect_tx(
-            token_id=token_id,
             recipient=recipient,
-            amount0_max=MAX_UINT_128,
-            amount1_max=MAX_UINT_128,
-            wait=wait,
+            deadline=deadline,
         )
-        multicall_input = (
-            transaction_decrease["data"],
-            transaction_collect["data"],
-        )
-        function_call = self.functions.multicall(multicall_input)
-        transaction = function_call.build_transaction(
-            {
-                "chainId": self.w3.eth.chain_id,
-                "from": self.client.address,
-                "nonce": self.w3.eth.get_transaction_count(self.client.address),
-            }
-        )
-
         tx_hash = self.send_tx(self.sign_tx(transaction))
         return tx_hash

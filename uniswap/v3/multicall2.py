@@ -6,7 +6,6 @@ from eth_typing import ChecksumAddress
 
 # from hexbytes import HexBytes
 from uniswap.EtherClient.web3_client import EtherClient
-from web3 import Web3
 
 # from web3.types import TxReceipt
 from web3.contract.contract import ContractFunction

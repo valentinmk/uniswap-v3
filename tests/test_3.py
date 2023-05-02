@@ -41,7 +41,6 @@ def test_ERC20_approve(uni: UniswapV3, dai_contract: EIP20Contract):
 
 
 @pytest.mark.release
-@pytest.mark.devel
 def test_ERC20_approve_no_need(uni: UniswapV3, weth_contract: EIP20Contract):
     tx_hash = weth_contract.approve(uni.swap_router_02.address, 100.0)
     assert tx_hash is None

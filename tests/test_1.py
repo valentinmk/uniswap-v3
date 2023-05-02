@@ -148,6 +148,4 @@ def test_uni_pool_data(
 
     price0 = pool.token0Price()
     price1 = pool.token1Price()
-    print(price0)
-    print(price1)
-    assert price0 == 1 / price1
+    assert round(price0, 18) == round(1 / price1, 18)

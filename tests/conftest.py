@@ -6,6 +6,7 @@ from uniswap.EtherClient.web3_client import EtherClient
 from uniswap.EtherClient import web3_client
 
 from uniswap.v3.main import UniswapV3
+from uniswap.v3.pool import Pool
 from uniswap.v3.models import Token
 from uniswap.utils.erc20token import EIP20Contract
 from uniswap.utils.erc20token_consts import (
@@ -66,5 +67,14 @@ def weth_contract(eth_client: EtherClient, weth) -> EIP20Contract:
 
 
 @pytest.fixture(scope="module")
-def pool_dai_weth(uni: UniswapV3, dai: Token, weth: Token):
-    return uni.get_pool(dai.address, weth.address, fee=500)
+def pool_dai_weth(uni: UniswapV3, dai: Token, weth: Token) -> Pool:
+    pool = uni.get_pool(dai.address, weth.address, fee=500)
+    pool.data
+    return pool
+
+
+@pytest.fixture(scope="module")
+def pool_uni_weth(uni: UniswapV3, uni_token: Token, weth: Token) -> Pool:
+    pool = uni.get_pool(uni_token.address, weth.address, fee=500)
+    pool.data
+    return pool

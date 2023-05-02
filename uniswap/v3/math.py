@@ -9,12 +9,14 @@ MIN_TICK = -887272
 MAX_TICK = -MIN_TICK
 
 
-def from_sqrtPriceX96(value: int) -> float:
-    return (value**2) / (2**192)
+def from_sqrtPriceX96(sqrtPriceX96: int) -> float:
+    """Return price by sqrtPriceX96"""
+    return (sqrtPriceX96**2) / (2**192)
 
 
-def to_sqrtPriceX96(value: float) -> int:
-    return int(value**0.5 * 2**96)
+def to_sqrtPriceX96(price: float) -> int:
+    """Return sqrtPriceX96 by the price"""
+    return int(price**0.5 * 2**96)
 
 
 def mul_shift(val, mul_by):
@@ -25,7 +27,8 @@ def get_sqrt_ratio_at_tick(tick: int) -> int:
     """
     Get sqrtRatioX96 from a tick.
 
-    Original Sol code: https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol#L23  # noqa
+    Original code:
+        https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol#L23
 
     Its Python equivalent is:
     ```python
@@ -194,6 +197,24 @@ def get_liquidity(
     """
     Get liquidity of the position by a sqrt of a current price, a lower and upper and
     amounts of assets
+
+    Parameters
+    ----------
+    sqrt_price_x_96 : int
+        current sqrtPriceX96
+    sqrt_price_x_96_tick_lower : int
+        sqrtPriceX96 at tick_lower
+    sqrt_price_x_96_tick_upper : int
+        sqrtPriceX96 at tick_upper
+    amount0: int
+        Amount of the first asset
+    amount1: int
+        Amount of the second asset
+
+    Returns
+    -------
+    float
+        Liquidity
     """
     pa = sqrt_price_x_96_tick_lower  # get_sqrt_ratio_at_tick(tick_lower)
     pb = sqrt_price_x_96_tick_upper  # get_sqrt_ratio_at_tick(tick_upper)
@@ -334,5 +355,17 @@ def get_amount1_from_tick_range(p: int, pa: int, pb: int, amount0: int) -> int:
 
 
 def get_tick_from_price(price: float) -> int:
+    """Return tick by provided price
+
+    Parameters
+    ----------
+    price : float
+        price
+
+    Returns
+    -------
+    int
+        Tick
+    """
     tick = log(price, 1.0001)
     return int(round(tick, 0))
