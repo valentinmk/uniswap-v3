@@ -1,5 +1,10 @@
 # uniswap-v3
 
+[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-310/)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-311/)
+
+![Pytest](https://github.com/valentinmk/uniswap-v3/actions/workflows/pytest.yaml/badge.svg)
+
 ## WORK IN PROGRESS
 
 An unofficial python client for Uniswap V3, built for human beings.
