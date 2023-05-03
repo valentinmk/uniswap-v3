@@ -24,10 +24,10 @@ def eth_client():
     ETH_WALLET_PASS = os.environ.get("ETH_WALLET_PASS")
     ETH_WALLET_JSON_PATH = os.environ.get("ETH_WALLET_JSON_PATH")
     ETH_WALLET_JSON = os.environ.get("ETH_WALLET_JSON")
-    if ETH_WALLET_JSON_PATH or ETH_WALLET_JSON_PATH != "":
+    if ETH_WALLET_JSON_PATH is not None:
         with open(ETH_WALLET_JSON_PATH) as keyfile:
             eth_keyfile_json = keyfile.read()
-    elif ETH_WALLET_JSON:
+    elif ETH_WALLET_JSON is not None:
         eth_keyfile_json = ETH_WALLET_JSON
     else:
         raise ValueError("No ETH_WALLET_JSON_PATH nor ETH_WALLET_JSON_PATH provided")
