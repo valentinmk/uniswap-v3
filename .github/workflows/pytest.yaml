@@ -1,0 +1,37 @@
+name: Python package
+
+on: [push]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.10"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+      - name: Update pip
+        run: |
+          pip install --upgrade pip
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements_dev.txt ]; then pip install -r requirements_dev.txt; fi
+      - name: Run tests
+        env:
+          ETH_PROVIDER_URL: ${{ secrets.ETH_PROVIDER_URL }}
+          ETH_PROVIDER_WS: ${{ secrets.ETH_PROVIDER_WS }}
+          ETH_WALLET_JSON_PATH: ${{ secrets.ETH_WALLET_JSON_PATH }}
+          ETH_WALLET_JSON: ${{ secrets.ETH_WALLET_JSON }}
+          ETH_WALLET_PASS: ${{ secrets.ETH_WALLET_PASS }}
+        run: |
+          export
+          python -m pytest -m devel --cov uniswap

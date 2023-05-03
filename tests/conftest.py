@@ -23,13 +23,19 @@ def eth_client():
     ETH_HTTP_URL = os.environ.get("ETH_PROVIDER_URL")
     ETH_WALLET_PASS = os.environ.get("ETH_WALLET_PASS")
     ETH_WALLET_JSON_PATH = os.environ.get("ETH_WALLET_JSON_PATH")
-    with open(ETH_WALLET_JSON_PATH) as keyfile:
-        ETH_WALLET_JSON = keyfile.read()
+    ETH_WALLET_JSON = os.environ.get("ETH_WALLET_JSON")
+    if ETH_WALLET_JSON_PATH or ETH_WALLET_JSON_PATH != "":
+        with open(ETH_WALLET_JSON_PATH) as keyfile:
+            eth_keyfile_json = keyfile.read()
+    elif ETH_WALLET_JSON:
+        eth_keyfile_json = ETH_WALLET_JSON
+    else:
+        raise ValueError("No ETH_WALLET_JSON_PATH nor ETH_WALLET_JSON_PATH provided")
     eth_client = web3_client.EtherClient(
         http_url=ETH_HTTP_URL,
         my_address=MY_ADDRESS,
         my_wallet_pass=ETH_WALLET_PASS,
-        my_keyfile_json=ETH_WALLET_JSON,
+        my_keyfile_json=eth_keyfile_json,
     )
     return eth_client
 
