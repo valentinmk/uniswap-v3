@@ -2,8 +2,7 @@ import pytest
 
 from uniswap.utils.erc20token import EIP20Contract
 from uniswap.v3.main import UniswapV3
-from uniswap.v3.models import Token
-from uniswap.v3.multicall2 import Call
+from uniswap.v3.models import Token, Multicall2Call
 
 
 @pytest.mark.release
@@ -15,7 +14,7 @@ def test_multicall_aggregate_and_call(uni: UniswapV3, dai_contract: EIP20Contrac
         dai_contract.functions.name(),
     )
     result = uni.multicall2.aggregate_and_call(dai_encoded_funcs)
-    assert type(result[0]) is Call
+    assert type(result[0]) is Multicall2Call
     assert result[0].returns[0] == 18
     assert result[1].returns[0] == "DAI"
     assert result[2].returns[0] == "Dai Stablecoin"
