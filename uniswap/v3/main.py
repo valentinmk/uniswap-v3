@@ -14,22 +14,19 @@ from .multicall2 import Multicall2
 
 class UniswapV3:
     """
-    Module to interact with Uniswap v3 smart contracts.
+    Main class to interact with Uniswap v3 smart contracts.
+
+    Parameters
+    ----------
+    client : EtherClient
+        EtherClient Client
+
+    Returns
+    -------
+    UniswapV3
     """
 
     def __init__(self, client: EtherClient) -> None:
-        """
-        Module to interact with Uniswap v3 smart contracts.
-
-        Parameters
-        ----------
-        client : EtherClient
-            EtherClient Client
-
-        Returns
-        -------
-        UniswapV3
-        """
         self.client: EtherClient = client
         self.w3: Web3 = client.w3
         self._factory: Factory = None
@@ -40,7 +37,13 @@ class UniswapV3:
         self._multicall2: Multicall2 = None
 
     @property
-    def factory(self):
+    def factory(self) -> Factory:
+        """Factory: retrieve the Factory contract.
+
+        Returns
+        -------
+        Factory
+        """
         if self._factory is None:
             self._factory = Factory(
                 self.w3, CONTRACT_ADDRESSES[self.w3.eth.chain_id]["factory"]
@@ -48,7 +51,8 @@ class UniswapV3:
         return self._factory
 
     @property
-    def quoter(self):
+    def quoter(self) -> Quoter:
+        """Quoter smart contract."""
         if self._quoter is None:
             self._quoter = Quoter(
                 self.w3, CONTRACT_ADDRESSES[self.w3.eth.chain_id]["quoter"]
@@ -56,7 +60,8 @@ class UniswapV3:
         return self._quoter
 
     @property
-    def swap_router(self):
+    def swap_router(self) -> SwapRouter:
+        """Helper to SwapRouter smart contract."""
         if self._swap_router is None:
             self._swap_router = SwapRouter(
                 self.w3, CONTRACT_ADDRESSES[self.w3.eth.chain_id]["swap_router"]
@@ -64,7 +69,8 @@ class UniswapV3:
         return self._swap_router
 
     @property
-    def swap_router_02(self):
+    def swap_router_02(self) -> SwapRouter02:
+        """Helper to SwapRouter02 smart contract."""
         if self._swap_router_02 is None:
             self._swap_router_02 = SwapRouter02(
                 self.client,
@@ -73,7 +79,8 @@ class UniswapV3:
         return self._swap_router_02
 
     @property
-    def nft_position_manager(self):
+    def nft_position_manager(self) -> NonfungiblePositionManager:
+        """Helper to Non-fungible position manager smart contract."""
         if self._nft_position_manager is None:
             self._nft_position_manager = NonfungiblePositionManager(
                 self.client,
@@ -85,7 +92,8 @@ class UniswapV3:
         return self._nft_position_manager
 
     @property
-    def multicall2(self):
+    def multicall2(self) -> Multicall2:
+        """Helper for Multicall2 smart contract."""
         if self._multicall2 is None:
             self._multicall2 = Multicall2(
                 self.client,
@@ -95,6 +103,19 @@ class UniswapV3:
 
     @staticmethod
     def is_fee_valid(fee: int) -> bool:
+        """
+        Return the Pool contract wrapper.
+        Please refer official documentation:
+
+        Parameters
+        ----------
+        fee : int
+            Fee
+
+        Returns
+        -------
+        bool
+        """
         return fee in [100, 500, 3000, 10000]
 
     def get_pool(
@@ -102,6 +123,7 @@ class UniswapV3:
     ) -> Pool:
         """
         Return the Pool contract wrapper.
+
         Please refer official documentation:
         https://docs.uniswap.org/contracts/v3/reference/core/UniswapV3Pool
 

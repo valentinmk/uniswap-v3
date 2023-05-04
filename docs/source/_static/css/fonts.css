@@ -1,0 +1,20 @@
+body {
+    font-family: arial, sans-serif;
+}
+
+h1 {
+    color: #013243;
+    /* warm black */
+}
+
+h2 {
+    color: #4d77cf;
+    /* han blue */
+    letter-spacing: -.03em;
+}
+
+h3 {
+    color: #013243;
+    /* warm black */
+    letter-spacing: -.03em;
+}

@@ -8,24 +8,41 @@ from web3.eth import AsyncEth
 
 class EtherClient:
     """
-    Client helper for connect to blockchain.
+    Client helper to connect to with interact with the Ethereum blockchain.
     It should work with all supported blockchains under web3.py.
 
     Parameters
     ----------
     http_url : str
-        [Optional] url for HTTPProvider. Required, if `ws_url` not provided.
-    ws_url : str
-        [Optional] url for WSProvider. Required, if `http_url` not provided.
-    http_async : bool
-        [Optional] True for use AsyncHTTPProvider instead of HTTPProvider.
+        URL for HTTPProvider. Required, if `ws_url` not provided.
+    ws_url : str, optional
+        URL for WSProvider. Required, if `http_url` not provided.
+    http_async : bool, optional, default = False
+        True for use AsyncHTTPProvider instead of HTTPProvider.
         By default is False.
-    my_address : str
-        [Optional] Address of the wallet
-    my_wallet_pass : str
-        [Optional] Password for the wallet
-    my_keyfile_json : str
-        [Optional] Secret file encrypted with `my_wallet_pass`
+    my_address : str, optional
+        Address of the wallet
+    my_wallet_pass : str, optional
+        Password for the wallet
+    my_keyfile_json : str, optional
+        Secret file encrypted with `my_wallet_pass`
+
+    Attributes
+    ----------
+    url : str, optional
+        URL for web3.providers.rpc.HTTPProvider. Required, if `ws_url` not provided.
+    ws_url : str, optional
+        URL for web3.providers.rpc.WSProvider. Required, if `url` not provided.
+    http_async: bool, default=False
+        True for use AsyncHTTPProvider instead of HTTPProvider.
+    address: str
+        Address of the wallet
+    _wallet_pass : str, optional
+        Password for the wallet
+    _keyfile_json : json, optional
+        Secret file encrypted with self._wallet_pass
+    _w3 : web3.Web3
+        web3.Web3 instance to interact with the Ethereum blockchain.
 
     Returns
     -------
@@ -36,7 +53,7 @@ class EtherClient:
         self,
         http_url: str = None,
         ws_url: str = None,
-        http_async=False,
+        http_async: bool = False,
         my_address: str = None,
         my_wallet_pass: str = None,
         my_keyfile_json: str or dict = None,
@@ -52,6 +69,7 @@ class EtherClient:
         self._w3: Optional[Web3] = None
 
     def init_w3(self) -> Web3:
+        """Invoke and return an web3.Web3 instance."""
         if self.url is not None:
             if self.http_async is True:
                 return Web3(
@@ -69,6 +87,7 @@ class EtherClient:
 
     @property
     def w3(self) -> Web3:
+        """Web3: web3.Web3 instance to interact with the Ethereum blockchain."""
         if self._w3 is None:
             self._w3 = self.init_w3()
         return self._w3

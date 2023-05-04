@@ -1,7 +1,7 @@
 # uniswap-v3
 
-[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-310/)
-[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-311/)
+[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg?logo=python)](https://www.python.org/downloads/release/python-310/)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg?logo=python)](https://www.python.org/downloads/release/python-311/)
 
 ![Pytest](https://github.com/valentinmk/uniswap-v3/actions/workflows/pytest.yaml/badge.svg)
 
@@ -64,14 +64,23 @@ An unofficial python client for Uniswap V3, built for human beings.
 
 - [ ] "Integrating the Auto Router"
 
-## Hints
+## Development Guide (sort of)
+
+### Hints
 
 Use `export $(cat _.env | xargs)` to load yours `_.env` file in the terminal.
 > END
 
-## Testing
+### Testing
 
 Before testing run `pip install -r requirements_dev.txt`.
 Runs with `pytest -vs tests/test_3.py -m devel --cov uniswap`.
 For main branch releases will be executed via `pytest tests -m release --cov uniswap`.
 Please check `tests/conftest.py` and `pytest.ini` for details.
+
+### Docs
+
+Notes:
+
+- To collect docs from docstrings: `sphinx-apidoc -o source ../uniswap -M -f`
+- To clean and build docs: `make clean && make html`

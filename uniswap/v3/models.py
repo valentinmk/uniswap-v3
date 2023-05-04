@@ -1,5 +1,8 @@
 from dataclasses import dataclass
+
 from eth_typing import ChecksumAddress
+from web3.contract.contract import ContractFunction
+
 from uniswap.utils.consts import EXACT_INPUT, EXACT_OUTPUT
 
 
@@ -157,3 +160,14 @@ class UncheckedNftPosition:
     adj_amount1HR: float = 0.0
     adj_lower_price: float = 0.0
     adj_upper_price: float = 0.0
+
+
+@dataclass
+class Multicall2Call:
+    """This is a helper dataclass for the Multicall2."""
+
+    func_call: ContractFunction
+    name: str = ""
+    returns: list[tuple] = None
+    outputs: list[dict] = None
+    block_number: int = 0

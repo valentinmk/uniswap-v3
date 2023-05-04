@@ -1,19 +1,19 @@
 from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 from web3 import Web3
-from web3.types import TxReceipt, TxParams
+from web3.types import TxParams, TxReceipt
 
 from uniswap.EtherClient.web3_client import EtherClient
 from uniswap.utils.helpers import decode_nft_URI, normalize_tick_by_spacing
 from uniswap.v3.math import (
     MAX_UINT_128,
-    get_sqrt_ratio_at_tick,
     get_amount0,
     get_amount0_from_price_range,
     get_amount0_from_tick_range,
     get_amount1,
     get_amount1_from_price_range,
     get_amount1_from_tick_range,
+    get_sqrt_ratio_at_tick,
     get_tick_from_price,
 )
 from uniswap.v3.models import (
@@ -30,12 +30,27 @@ from .base import BaseContract
 
 
 class NonfungiblePositionManager(BaseContract):
-    """NonfungiblePositionManager.
+    """NonfungiblePositionManager contract helper class.
 
-    Deployment address: https://docs.uniswap.org/protocol/reference/deployments
+    Original source code:
+    https://github.com/Uniswap/v3-periphery/blob/v1.0.0/contracts/NonfungiblePositionManager.sol
 
-    Original source code: https://github.com/Uniswap/v3-periphery/blob/v1.0.0/contracts/NonfungiblePositionManager.sol
-    """  # noqa
+    Deployment address:
+    https://docs.uniswap.org/protocol/reference/deployments
+
+    Parameters
+    ----------
+    client : EtherClient
+        Ethereum client
+    address: eth_typing.ChecksumAddress
+        Address of NonfungiblePositionManager
+    abi_path : str, optional, default="../utils/abis/nft_position_manager.abi.json"
+            Path to json with ABI of the contract.
+
+    Returns
+    -------
+    NonfungiblePositionManager
+    """
 
     def __init__(
         self,

@@ -1,3 +1,19 @@
+"""
+Notes
+-----
+Below implementation based on the great article of Atis Elsts.
+
+.. [1] Atis Elsts "LIQUIDITY MATH IN UNISWAP V3",
+    https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf, 2022
+
+
+Implementation utilize description of liquidity based on book of
+Ivan Kuznetsov and all https://github.com/Jeiwan/uniswapv3-book contributors.
+
+.. [2] Source: https://uniswapv3book.com/docs/milestone_1/calculating-liquidity/
+
+
+"""
 from math import sqrt, log
 
 Q32 = 2**32
@@ -26,26 +42,27 @@ def mul_shift(val, mul_by):
 def get_sqrt_ratio_at_tick(tick: int) -> int:
     """
     Get sqrtRatioX96 from a tick.
-
     Original code:
-        https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol#L23
-
-    Its Python equivalent is:
-    ```python
-        def get_sqrt_ratio_at_tick(tick):
-            return int(sqrt(1.0001**tick) * Q96)
-    ```
-    Note: A Python equivalent don't give the same precision of the result.
+    https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol#L23
 
     Parameters
     ----------
     tick : int
-        a Tick
+        Value of the Tick
 
     Returns
     -------
     int
         sqrtRatioX96 of a Price for a provided tick
+
+    Notes
+    -----
+    A Python equivalent don't give the same precision of the result.
+    Its Python equivalent is::
+
+        def get_sqrt_ratio_at_tick(tick):
+            return int(sqrt(1.0001**tick) * Q96)
+
     """
     # XXX
     # https://github.com/Uniswap/v3-core/blob/main/contracts/interfaces/pool/IUniswapV3PoolState.sol#L10 # noqa
@@ -165,13 +182,14 @@ def get_amount1(
     return get_amount1_delta(tick0ratio, tick1ratio, liquidity)
 
 
-# From https://uniswapv3book.com/docs/milestone_1/calculating-liquidity/
-# Get Liquidity
-
-
 def get_liquidity0(amount: int, pa: int, pb: int) -> int:
     """
-    Get a liquidity by sqrt price range and an amount of the first asset
+    Get a liquidity by sqrt price range and an amount of the first asset.
+    Implementation based on the article [2]_
+
+    Notes
+    -----
+
     """
     if pa > pb:
         pa, pb = pb, pa
@@ -180,7 +198,8 @@ def get_liquidity0(amount: int, pa: int, pb: int) -> int:
 
 def get_liquidity1(amount: int, pa: int, pb: int) -> int:
     """
-    Get a liquidity by a range of sqrt prices and an amount of the second asset
+    Get a liquidity by a range of sqrt prices and an amount of the second asset.
+    Implementation based on the article [2]_
     """
     if pa > pb:
         pa, pb = pb, pa
@@ -196,7 +215,8 @@ def get_liquidity(
 ) -> int:
     """
     Get liquidity of the position by a sqrt of a current price, a lower and upper and
-    amounts of assets
+    amounts of assets.
+    Implementation based on the article [2]_
 
     Parameters
     ----------
@@ -225,17 +245,11 @@ def get_liquidity(
     return int(min(liq0, liq1))
 
 
-# Below implementation based on the great article of Atis Elsts
-# References:
-# [1]
-# [2] Atis Elsts "LIQUIDITY MATH IN UNISWAP V3", https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf, 2022. # noqa
-
-
 def get_amount0_from_price_range(p: float, pa: float, pb: float, amount1):
     """
     Get amount1 from price range and amount0.
 
-    Ref. [1]
+    Formula (1) [1]_
 
     Parameters
     ----------
@@ -266,7 +280,7 @@ def get_amount1_from_price_range(p: float, pa: float, pb: float, amount0: float)
     """
     Get amount1 from price range and amount1.
 
-    Ref. [1] 3.2.1 Example 1: Amount of assets from a range
+    3.2.1 Example 1: Amount of assets from a range [1]_
 
     Parameters
     ----------
@@ -298,7 +312,7 @@ def get_amount0_from_tick_range(p: int, pa: int, pb: int, amount1: int) -> int:
     """
     Get amount1 from a tick range and amount0.
 
-    Ref. [1]
+    Formula (1) [1]_
 
     Parameters
     ----------
@@ -329,7 +343,7 @@ def get_amount1_from_tick_range(p: int, pa: int, pb: int, amount0: int) -> int:
     """
     Get amount1 from tick range and amount1.
 
-    Ref. [1] 3.2.1 Example 1: Amount of assets from a range
+    3.2.1 Example 1: Amount of assets from a range [1]_
 
     Parameters
     ----------

@@ -128,7 +128,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Sphinx documentation
+docs/_build/
+
 # My stuff
+*DS_Store
 _.env
 draft.py
 .env
