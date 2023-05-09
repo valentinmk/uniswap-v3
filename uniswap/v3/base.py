@@ -10,7 +10,7 @@ from web3.contract.contract import Contract, ContractFunctions
 
 class BaseContract:
     def __init__(self, w3: Web3, address: ChecksumAddress, abi_path: str) -> None:
-        self.w3 = w3
+        self.w3: Web3 = w3
         self.address: ChecksumAddress = address
         self.abi_path: str = abi_path
         self._contract: Contract = None

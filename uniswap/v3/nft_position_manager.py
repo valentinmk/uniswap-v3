@@ -251,7 +251,7 @@ class NonfungiblePositionManager(BaseContract):
         )
         transaction = function_call.build_transaction(
             {
-                "chainId": self.w3.eth.chain_id,
+                "chainId": self.client.chain_id,
                 "from": self.client.address,
                 "nonce": self.w3.eth.get_transaction_count(self.client.address),
             }
@@ -283,7 +283,7 @@ class NonfungiblePositionManager(BaseContract):
         )
         transaction = function_call.build_transaction(
             {
-                "chainId": self.w3.eth.chain_id,
+                "chainId": self.client.chain_id,
                 "from": self.client.address,
                 "nonce": self.w3.eth.get_transaction_count(self.client.address),
             }
@@ -313,7 +313,7 @@ class NonfungiblePositionManager(BaseContract):
         )
         transaction = function_call.build_transaction(
             {
-                "chainId": self.w3.eth.chain_id,
+                "chainId": self.client.chain_id,
                 "from": self.client.address,
                 "nonce": self.w3.eth.get_transaction_count(self.client.address),
             }
@@ -341,7 +341,7 @@ class NonfungiblePositionManager(BaseContract):
         )
         transaction = function_call.build_transaction(
             {
-                "chainId": self.w3.eth.chain_id,
+                "chainId": self.client.chain_id,
                 "from": self.client.address,
                 "nonce": self.w3.eth.get_transaction_count(self.client.address),
             }
@@ -382,7 +382,7 @@ class NonfungiblePositionManager(BaseContract):
         function_call = self.functions.multicall(multicall_input)
         transaction = function_call.build_transaction(
             {
-                "chainId": self.w3.eth.chain_id,
+                "chainId": self.client.chain_id,
                 "from": self.client.address,
                 "nonce": self.w3.eth.get_transaction_count(self.client.address),
             }

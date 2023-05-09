@@ -9,7 +9,9 @@ from uniswap.v3.main import UniswapV3
 @pytest.mark.release
 @pytest.mark.devel
 def test_client_invoke():
-    client = EtherClient(http_url=os.environ.get("ETH_PROVIDER_URL"))
+    client = EtherClient(
+        http_url=os.environ.get("ETH_PROVIDER_URL"), skip_validation_eth_call=True
+    )
     assert client.url == os.environ.get("ETH_PROVIDER_URL")
     assert client.address is None
 
@@ -17,7 +19,11 @@ def test_client_invoke():
 @pytest.mark.release
 @pytest.mark.devel
 def test_client():
-    client = EtherClient(http_url=os.environ.get("ETH_PROVIDER_URL"))
+    client = EtherClient(
+        http_url=os.environ.get("ETH_PROVIDER_URL"),
+        skip_validation_eth_call=False,
+        latest_block_based_cache=True,
+    )
     balance = client.w3.eth.get_balance("0x0000000000000000000000000000000000000000")
     assert (
         type(balance) is int

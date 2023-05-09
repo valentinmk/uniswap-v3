@@ -30,7 +30,7 @@ def test_multicall_fast(uni: UniswapV3, dai_contract: EIP20Contract, dai: Token)
     )
     result = uni.multicall2.aggregate_and_call(dai_encoded_funcs)
     fast_token = Token(
-        chainId=uni.w3.eth.chain_id,
+        chainId=uni.client.chain_id,
         decimals=result[0].returns[0],
         symbol=result[1].returns[0],
         name=result[2].returns[0],
@@ -54,7 +54,7 @@ def test_multicall_fast_timeit(uni: UniswapV3, dai_contract: EIP20Contract, dai:
         )
         result = uni.multicall2.aggregate_and_call(dai_encoded_funcs)
         fast_token = Token(
-            chainId=uni.w3.eth.chain_id,
+            chainId=uni.client.chain_id,
             decimals=result[0].returns[0],
             symbol=result[1].returns[0],
             name=result[2].returns[0],

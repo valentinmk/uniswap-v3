@@ -39,7 +39,7 @@ class EIP20Contract(BaseContract):
 
     def _get_data(self):
         return Token(
-            chainId=self.w3.eth.chain_id,
+            chainId=self.client.chain_id,
             decimals=self.functions.decimals().call(),
             symbol=self.functions.symbol().call(),
             name=self.functions.name().call(),
@@ -92,7 +92,7 @@ class EIP20Contract(BaseContract):
         function_call = self.functions.approve(contract_address, amount_in_wei)
         transaction = function_call.build_transaction(
             {
-                "chainId": self.w3.eth.chain_id,
+                "chainId": self.client.chain_id,
                 "from": self.client.address,
                 "nonce": self.w3.eth.get_transaction_count(self.client.address),
             }

@@ -46,16 +46,16 @@ class UniswapV3:
         """
         if self._factory is None:
             self._factory = Factory(
-                self.w3, CONTRACT_ADDRESSES[self.w3.eth.chain_id]["factory"]
+                self.w3, CONTRACT_ADDRESSES[self.client.chain_id]["factory"]
             )
         return self._factory
 
     @property
     def quoter(self) -> Quoter:
-        """Quoter smart contract."""
+        """Quoter: Quoter smart contract."""
         if self._quoter is None:
             self._quoter = Quoter(
-                self.w3, CONTRACT_ADDRESSES[self.w3.eth.chain_id]["quoter"]
+                self.w3, CONTRACT_ADDRESSES[self.client.chain_id]["quoter"]
             )
         return self._quoter
 
@@ -64,7 +64,7 @@ class UniswapV3:
         """Helper to SwapRouter smart contract."""
         if self._swap_router is None:
             self._swap_router = SwapRouter(
-                self.w3, CONTRACT_ADDRESSES[self.w3.eth.chain_id]["swap_router"]
+                self.w3, CONTRACT_ADDRESSES[self.client.chain_id]["swap_router"]
             )
         return self._swap_router
 
@@ -74,7 +74,7 @@ class UniswapV3:
         if self._swap_router_02 is None:
             self._swap_router_02 = SwapRouter02(
                 self.client,
-                CONTRACT_ADDRESSES[self.w3.eth.chain_id]["swap_router_02"],
+                CONTRACT_ADDRESSES[self.client.chain_id]["swap_router_02"],
             )
         return self._swap_router_02
 
@@ -85,7 +85,7 @@ class UniswapV3:
             self._nft_position_manager = NonfungiblePositionManager(
                 self.client,
                 self.w3,
-                CONTRACT_ADDRESSES[self.w3.eth.chain_id][
+                CONTRACT_ADDRESSES[self.client.chain_id][
                     "non_fungible_position_manager"
                 ],
             )
@@ -97,7 +97,7 @@ class UniswapV3:
         if self._multicall2 is None:
             self._multicall2 = Multicall2(
                 self.client,
-                CONTRACT_ADDRESSES[self.w3.eth.chain_id]["multicall2"],
+                CONTRACT_ADDRESSES[self.client.chain_id]["multicall2"],
             )
         return self._multicall2
 

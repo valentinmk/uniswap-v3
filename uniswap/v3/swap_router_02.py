@@ -103,7 +103,7 @@ class SwapRouter02(BaseContract):
         )
         transaction = function_call.build_transaction(
             {
-                "chainId": self.w3.eth.chain_id,
+                "chainId": self.client.chain_id,
                 "from": self.client.address,
                 "nonce": self.w3.eth.get_transaction_count(self.client.address),
             }
